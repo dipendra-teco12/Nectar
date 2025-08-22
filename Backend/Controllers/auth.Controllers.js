@@ -1,14 +1,19 @@
-const User = require("../Models/user.Model");
 const bcrypt = require("bcrypt");
 const twilio = require("twilio");
+const User = require("../Models/user.Model");
 const OTP = require("../Models/otp.Model");
+const RefreshToken = require("../Models/refreshToken.Model");
 require("dotenv").config({ quiet: true });
+
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authTokin = process.env.TWILIO_AUTH_TOKIN;
+const client = new twilio(accountSid, authTokin);
+
 const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../Utilities/jwt");
 
-const RefreshToken = require("../Models/refreshToken.Model");
 const signUp = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -100,9 +105,6 @@ const login = async (req, res) => {
   }
 };
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authTokin = process.env.TWILIO_AUTH_TOKIN;
-const client = new twilio(accountSid, authTokin);
 
 const crypto = require("crypto");
 
