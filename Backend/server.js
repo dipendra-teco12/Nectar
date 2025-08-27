@@ -34,5 +34,5 @@ app.use("/admin/dashboard", authenticateToken, (req, res) => {
 
 app.listen(port, () => {
   connectDb();
-  console.log(`Serve is listening on port ${port}`);
+  console.log(`Server is listening on port ${port}`);
 });

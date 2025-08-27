@@ -2,7 +2,7 @@
 const Category = require("../Models/category.Model");
 const FavouriteProduct = require("../Models/fevouriteProducts.Model");
 const Product = require("../Models/product.Model");
-
+const Cart = require("../Models/cart.Model");
 const setProduct = async (req, res) => {
   try {
     const { name, price, categoryName, stock, description } = req.body;
@@ -133,48 +133,88 @@ const setFavouriteProduct = async (req, res) => {
   try {
     const userId = req.user._id;
     const { productId } = req.params;
-    if (!productId) {
-      return res.status(400).json({ message: " Product id is Required" });
-    }
-    if (!userId) {
-      return res.status(400).json({ message: " user id is Required" });
-    }
-    const Product = await FavouriteProduct.create({
-      userId,
-      productId,
-    });
 
-    res
-      .status(201)
-      .json({ message: "Product Added in Favourite List", Product });
+    if (!productId) {
+      return res.status(400).json({ message: "Product ID is required" });
+    }
+
+    let favProduct = await FavouriteProduct.findOne({ userId });
+
+    if (favProduct) {
+      if (favProduct.productId.includes(productId)) {
+        return res
+          .status(409)
+          .json({ message: "Product already in favorites" });
+      }
+
+      favProduct.productId.push(productId);
+      await favProduct.save();
+    } else {
+      favProduct = await FavouriteProduct.create({
+        userId,
+        productId: [productId],
+      });
+    }
+
+    res.status(201).json({
+      message: "Product added to favorites",
+      favourites: favProduct,
+    });
   } catch (error) {
-    console.error("Error While Adding Product in Favourite List :", error);
+    console.error("Error while adding product to favorites:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 const removeFromFavouriteProduct = async (req, res) => {
   try {
-    const { id } = req.params;
-    if (!id) {
-      return res.status(400).json({ message: "id is Required" });
+    const userId = req.user._id;
+    const { productId } = req.params;
+    console.log(productId);
+    if (!productId) {
+      return res.status(400).json({ message: "Product ID is required" });
     }
-    const product = await FavouriteProduct.findByIdAndDelete({
-      _id: id,
-    });
 
-    if (!product) {
+    const favProduct = await FavouriteProduct.findOne({ userId });
+
+    if (!favProduct || !favProduct.productId.includes(productId)) {
       return res
         .status(404)
-        .json({ message: "Product not found or already deleted" });
+        .json({ message: "Product not found in favorites" });
     }
 
-    res.status(201).json({
-      message: "Product Remove from Favourite List",
-      product,
+    favProduct.productId = favProduct.productId.filter(
+      (id) => id.toString() !== productId
+    );
+
+    await favProduct.save();
+
+    res.status(200).json({
+      message: "Product removed from favorites",
+      favourites: favProduct,
     });
   } catch (error) {
-    console.error("Error While Removing Product From Favourite List :", error);
+    console.error("Error while removing product from favorites:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const getFavouriteProducts = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const favProduct = await FavouriteProduct.findOne({ userId }).populate(
+      "productId",
+      "-stock"
+    );
+
+    if (!favProduct) {
+      return res.status(404).json({ message: "No favorite products found" });
+    }
+
+    res.status(200).json({ favourites: favProduct.productId });
+  } catch (error) {
+    console.error("Error while fetching favorite products:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -237,6 +277,156 @@ const searchProductsByName = async (req, res) => {
   }
 };
 
+const addItemsToTheCart = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const cart = await Cart.findOne({ userId: req.user._id });
+
+    const product = await Product.findById(productId);
+
+    if (!cart) {
+      const newCart = await Cart.create({
+        userId: req.user._id,
+        cartItems: [
+          {
+            productId: product._id,
+            quantity: 1,
+            price: product.price,
+            total: product.price * 1,
+          },
+        ],
+        subTotal: product.price,
+      });
+      return res
+        .status(201)
+        .json({ message: "Item added successfully to the cart", newCart });
+    }
+
+    const existingItem = cart.cartItems.find(
+      (item) => item.productId.toString() === productId
+    );
+    if (existingItem) {
+      return res
+        .status(409)
+        .json({ message: "Product already exists in the cart" });
+    }
+
+    cart.cartItems.push({
+      productId: product._id,
+      quantity: 1,
+      price: product.price,
+      total: product.price * 1,
+    });
+
+    cart.subTotal = cart.cartItems.reduce((sum, item) => sum + item.total, 0);
+    await cart.save();
+    res
+      .status(201)
+      .json({ message: "Item added successfully to the cart", cart });
+  } catch (error) {
+    console.error("Error while adding item to the cart :", error);
+  }
+};
+
+const removeItemFromCart = async (req, res) => {
+  const { productId } = req.params;
+
+  try {
+    const cart = await Cart.findOne({ userId: req.user._id });
+
+    if (!cart) {
+      return res.status(404).json({ msg: "Cart not found" });
+    }
+
+    cart.cartItems.pull({ productId });
+    cart.subTotal = cart.cartItems.reduce((sum, item) => sum + item.total, 0);
+    await cart.save();
+
+    res.json({ msg: "Product removed from cart" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+const updateItemInCart = async (req, res) => {
+  const { productId, quantity } = req.body;
+
+  try {
+    const cart = await Cart.findOne({ userId: req.user._id });
+
+    if (!cart) {
+      return res.status(404).json({ msg: "Cart not found" });
+    }
+
+    const item = cart.cartItems.find(
+      (item) => item.productId.toString() === productId
+    );
+
+    if (!item) {
+      return res.status(404).json({ msg: "Product not found in cart" });
+    }
+
+    item.quantity = quantity;
+
+    item.total = item.quantity * item.price;
+
+    cart.subTotal = cart.cartItems.reduce((sum, item) => sum + item.total, 0);
+    await cart.save();
+
+    res.json({ msg: "Product updated in cart", cart });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+const addFavouritesToCart = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const favourites = await FavouriteProduct.findOne({ userId }).populate(
+      "productId"
+    );
+
+    if (!favourites || favourites.productId.length === 0) {
+      return res.status(404).json({ msg: "No favourite products found" });
+    }
+
+    let cart = await Cart.findOne({ userId });
+    if (!cart) {
+      cart = new Cart({ userId, cartItems: [] });
+    }
+
+    for (const product of favourites.productId) {
+      const alreadyExists = cart.cartItems.some(
+        (item) => item.productId.toString() === product._id.toString()
+      );
+
+      if (!alreadyExists) {
+        cart.cartItems.push({
+          productId: product._id,
+          quantity: 1,
+          price: product.price,
+          total: product.price,
+        });
+      }
+    }
+
+    cart.subTotal = cart.cartItems.reduce((sum, item) => sum + item.total, 0);
+
+    await cart.save();
+
+    return res.status(200).json({
+      msg: "All favourite products added to the cart successfully",
+      cart,
+    });
+  } catch (err) {
+    console.error("Error adding favourites to cart:", err);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
 module.exports = {
   setProduct,
   getProduct,
@@ -244,6 +434,11 @@ module.exports = {
   updateProduct,
   setFavouriteProduct,
   removeFromFavouriteProduct,
+  getFavouriteProducts,
   getCategoryProducts,
   searchProductsByName,
+  addItemsToTheCart,
+  removeItemFromCart,
+  updateItemInCart,
+  addFavouritesToCart,
 };

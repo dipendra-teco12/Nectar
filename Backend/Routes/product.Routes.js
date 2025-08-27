@@ -11,6 +11,11 @@ const {
   removeFromFavouriteProduct,
   getCategoryProducts,
   searchProductsByName,
+  addItemsToTheCart,
+  removeItemFromCart,
+  updateItemInCart,
+  getFavouriteProducts,
+  addFavouritesToCart,
 } = require("../Controllers/product.Controller");
 
 const upload = require("../Middlewares/multer");
@@ -18,18 +23,35 @@ const upload = require("../Middlewares/multer");
 router.post("/upload", authenticateToken, upload.single("image"), setProduct);
 
 router.get("/search", authenticateToken, searchProductsByName);
-router.get("/:productId", authenticateToken, getProduct);
+router.get("/details/:productId", authenticateToken, getProduct);
 router.delete("/:productId", authenticateToken, deleteProduct);
 router.put(
-  "/:productId",
+  "/update-product/:productId",
   authenticateToken,
   upload.single("image"),
   updateProduct
 );
 
-router.post("/favourite/:productId", authenticateToken, setFavouriteProduct);
-router.delete("/favourite/:id", authenticateToken, removeFromFavouriteProduct);
+router.post(
+  "/add-favourite/:productId",
+  authenticateToken,
+  setFavouriteProduct
+);
+router.delete(
+  "/remove-favourite/:productId",
+  authenticateToken,
+  removeFromFavouriteProduct
+);
 
+router.get("/favourite-product", authenticateToken, getFavouriteProducts);
 router.get("/category/:categoryId", authenticateToken, getCategoryProducts);
+
+router.post("/add-item/:productId", authenticateToken, addItemsToTheCart);
+
+router.post("/remove-item/:productId", authenticateToken, removeItemFromCart);
+
+router.put("/update-item", authenticateToken, updateItemInCart);
+
+router.post("/add-favourite-to-cart", authenticateToken, addFavouritesToCart);
 
 module.exports = router;
