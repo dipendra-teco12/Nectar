@@ -1,5 +1,6 @@
 // models/Location.js
 const mongoose = require("mongoose");
+const { lazy } = require("react");
 const { Schema } = mongoose;
 
 const pointSchema = new Schema({
@@ -26,4 +27,3 @@ const locationSchema = new Schema({
 const Location = mongoose.model("Location", locationSchema);
 
 module.exports = Location;
-

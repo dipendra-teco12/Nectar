@@ -23,9 +23,10 @@ app.set("view engine", "ejs");
 app.get("/", (req, res) => {
   res.render("authViews/login");
 });
-
+const productRoutes = require("./Routes/product.Routes");
 app.use("/auth/google", oauthRoute);
 app.use("/api/auth", authRoutes);
+app.use("/api/product", productRoutes);
 
 app.use("/admin/dashboard", authenticateToken, (req, res) => {
   res.render("index");
