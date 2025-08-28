@@ -16,6 +16,8 @@ const {
   updateItemInCart,
   getFavouriteProducts,
   addFavouritesToCart,
+  createOrder,
+  getOrders,
 } = require("../Controllers/product.Controller");
 
 const upload = require("../Middlewares/multer");
@@ -53,5 +55,9 @@ router.post("/remove-item/:productId", authenticateToken, removeItemFromCart);
 router.put("/update-item", authenticateToken, updateItemInCart);
 
 router.post("/add-favourite-to-cart", authenticateToken, addFavouritesToCart);
+
+router.post("/create-order", authenticateToken, createOrder);
+
+router.post("/get-orders", authenticateToken, getOrders);
 
 module.exports = router;

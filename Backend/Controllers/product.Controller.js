@@ -427,6 +427,67 @@ const addFavouritesToCart = async (req, res) => {
   }
 };
 
+const Order = require("../Models/order.Model");
+
+const createOrder = async (req, res) => {
+  const userId = req.user._id;
+  const { Products, address, location } = req.body;
+
+  try {
+    const newOrder = new Order({
+      userId,
+      Products,
+      address,
+      location,
+    });
+
+    await newOrder.save();
+
+    for (let orderedProduct of Products) {
+      const product = await Product.findById(orderedProduct.ProductId);
+      if (!product) {
+        return res
+          .status(404)
+          .json({ message: `Product not found: ${orderedProduct.ProductId}` });
+      }
+
+      if (product.stock < orderedProduct.quantity) {
+        return res.status(400).json({
+          message: `Insufficient stock for product: ${product.name}`,
+        });
+      }
+
+      product.stock -= orderedProduct.quantity;
+      await product.save();
+    }
+    res.status(201).json({
+      message: "Order successfully created!",
+      order: newOrder,
+    });
+  } catch (error) {
+    console.error("Error While Ordering Product :", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const getOrders = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    if (!userId) {
+      return res.status(400).json({ message: "User Id required" });
+    }
+    const orders = await Order.find({ userId });
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "No Orders Yet!" });
+    }
+
+    res.status(200).json({ message: "Orders found sucessfully", orders });
+  } catch (error) {
+    console.error("Error While getting orders of user :", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   setProduct,
   getProduct,
@@ -441,4 +502,6 @@ module.exports = {
   removeItemFromCart,
   updateItemInCart,
   addFavouritesToCart,
+  createOrder,
+  getOrders,
 };
