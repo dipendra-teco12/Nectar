@@ -4,7 +4,7 @@ const connectDb = require("./Config/db");
 const path = require("path");
 const passport = require("passport");
 const oauthRoute = require("./Routes/oauth.Routes");
-const authenticateToken = require("./Middlewares/authenticateToken");
+
 const authRoutes = require("./Routes/auth.Routes");
 const paymentRoutes = require("./Routes/payment.Routes");
 const cookieParser = require("cookie-parser");
@@ -24,8 +24,15 @@ app.use(expressLayouts);
 app.set("layout", "layouts/admin");
 app.set("layout extractScripts", true);
 app.set("layout extractStyles", true);
+
+// app.get("/", (req, res) => {
+//   res.redirect("/admin/dashboard");
+// });
+
 app.get("/", (req, res) => {
-  res.redirect("/admin/dashboard");
+  res.render("authViews/login", {
+    layout: false, // Don't use the admin layout for login page
+  });
 });
 
 app.get("/admin/dashboard", (req, res) => {
@@ -35,26 +42,6 @@ app.get("/admin/dashboard", (req, res) => {
     breadcrumb: '<li class="breadcrumb-item active">Dashboard</li>',
   });
 });
-// app.get("/admin/users", async (req, res) => {
-//   try {
-//     // Example: fetch users from MongoDB
-//     // const users = await User.find();
-//     const users = [
-//       { id: 1, name: "John Doe", email: "john@example.com", role: "Admin" },
-//       { id: 2, name: "Jane Smith", email: "jane@example.com", role: "User" },
-//     ]; // Mock data
-
-//     res.render("pages/users", {
-//       title: "Users - Admin Panel",
-//       pageTitle: "Users Management",
-//       breadcrumb:
-//         '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Users</li>',
-//       users: users,
-//     });
-//   } catch (error) {
-//     res.status(500).send("Error fetching users");
-//   }
-// });
 
 // Session setup
 app.use(
