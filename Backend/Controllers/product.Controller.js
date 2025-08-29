@@ -219,6 +219,23 @@ const getFavouriteProducts = async (req, res) => {
   }
 };
 
+const getCategories = async (req, res) => {
+  try {
+    const category = await Category.find();
+
+    if (!category) {
+      return res.status(404).json({ message: "Categories not found" });
+    }
+
+    return res.status(200).json({
+      message: `categories of products fetched successfully`,
+      data: category,
+    });
+  } catch (error) {
+    console.error("Error while getting categories of products :", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 const getCategoryProducts = async (req, res) => {
   try {
     const { categoryId } = req.params;

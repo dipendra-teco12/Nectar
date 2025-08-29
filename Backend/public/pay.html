@@ -1,0 +1,55 @@
+<!-- pay.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>PayPal Order Test</title>
+  </head>
+  <body>
+    <h2>Test PayPal Payment Integration</h2>
+    <button onclick="startPayment()">Pay with PayPal</button>
+
+    <script>
+      async function startPayment() {
+        const response = await fetch(
+          "http://localhost:3000/api/pay/create-payment",
+          {
+            method: "POST",
+            credentials: "include", //
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: "68ac105535b97e6867935e30",
+              address: "123 Test St, Test City",
+              location: {
+                type: "Point",
+                coordinates: [78.9012, 12.3456],
+              },
+              Products: [
+                {
+                  ProductId: "68ac4b49cfc74dc70c13c644",
+                  name: "Test Product",
+                  price: 545,
+                  quantity: 2,
+                },
+                {
+                  ProductId: "68b18063c481d0f8c02540e3",
+                  name: "Test Product",
+                  price: 600,
+                  quantity: 2,
+                },
+              ],
+            }),
+          }
+        );
+
+        const data = await response.json();
+        if (data.approvalUrl) {
+          window.location.href = data.approvalUrl;
+        } else {
+          alert("Payment creation failed: " + (data.error || "Unknown error"));
+        }
+      }
+    </script>
+  </body>
+</html>
