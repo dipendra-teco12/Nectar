@@ -18,6 +18,44 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
+const expressLayouts = require("express-ejs-layouts");
+// Layout setup
+app.use(expressLayouts);
+app.set("layout", "layouts/admin");
+app.set("layout extractScripts", true);
+app.set("layout extractStyles", true);
+app.get("/", (req, res) => {
+  res.redirect("/admin/dashboard");
+});
+
+app.get("/admin/dashboard", (req, res) => {
+  res.render("pages/dashboard", {
+    title: "Dashboard - Admin Panel",
+    pageTitle: "Dashboard",
+    breadcrumb: '<li class="breadcrumb-item active">Dashboard</li>',
+  });
+});
+// app.get("/admin/users", async (req, res) => {
+//   try {
+//     // Example: fetch users from MongoDB
+//     // const users = await User.find();
+//     const users = [
+//       { id: 1, name: "John Doe", email: "john@example.com", role: "Admin" },
+//       { id: 2, name: "Jane Smith", email: "jane@example.com", role: "User" },
+//     ]; // Mock data
+
+//     res.render("pages/users", {
+//       title: "Users - Admin Panel",
+//       pageTitle: "Users Management",
+//       breadcrumb:
+//         '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Users</li>',
+//       users: users,
+//     });
+//   } catch (error) {
+//     res.status(500).send("Error fetching users");
+//   }
+// });
+
 // Session setup
 app.use(
   session({
@@ -33,19 +71,11 @@ app.use(
 
 app.set("view engine", "ejs");
 
-app.get("/", (req, res) => {
-  // res.render("authViews/login");
-  res.render("index");
-});
 const productRoutes = require("./Routes/product.Routes");
 app.use("/auth/google", oauthRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/pay", paymentRoutes);
-
-app.use("/admin/dashboard", authenticateToken, (req, res) => {
-  res.render("index");
-});
 
 app.listen(port, () => {
   connectDb();

@@ -4,7 +4,6 @@ const Product = require("../Models/product.Model");
 const createPayment = async (req, res) => {
   const { Products, address, location, userId } = req.body;
 
-
   req.session.orderData = {
     Products,
     address,
@@ -12,7 +11,6 @@ const createPayment = async (req, res) => {
     userId,
   };
 
-  
   const total = Products.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -71,7 +69,7 @@ const paymentSuccess = async (req, res) => {
         console.error(error.response);
         return res.redirect("/payment-failed");
       }
-      console.log("Session orderData:", req.session.orderData);
+      //   console.log("Session orderData:", req.session.orderData);
       const orderData = req.session.orderData;
 
       if (!orderData) {
@@ -118,7 +116,6 @@ const paymentSuccess = async (req, res) => {
           await product.save();
         }
 
-       
         req.session.orderData = null;
 
         res.status(201).json({
