@@ -29,6 +29,21 @@ const userSchema = new mongoose.Schema({
     enum: ["admin", "user"],
     default: "user",
   },
+  resetOtp: String,
+
+  resetOtpExpiry: Date,
+
+  otpAttemptCount: {
+    type: Number,
+    default: 0,
+  },
+  lastOTPSentAt: {
+    type: Date,
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
 });
 const User = mongoose.model("User", userSchema);
 

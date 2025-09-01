@@ -18,11 +18,12 @@ const {
   addFavouritesToCart,
   createOrder,
   getOrders,
+  cancelOrder,
 } = require("../Controllers/product.Controller");
 
 const upload = require("../Middlewares/multer");
 
-router.post("/upload", authenticateToken, upload.single("image"), setProduct);
+router.post("/add", authenticateToken, upload.single("image"), setProduct);
 
 router.get("/search", authenticateToken, searchProductsByName);
 router.get("/details/:productId", authenticateToken, getProduct);
@@ -59,5 +60,7 @@ router.post("/add-favourite-to-cart", authenticateToken, addFavouritesToCart);
 router.post("/create-order", authenticateToken, createOrder);
 
 router.post("/get-orders", authenticateToken, getOrders);
+
+router.put("/cancel-order", authenticateToken, cancelOrder);
 
 module.exports = router;

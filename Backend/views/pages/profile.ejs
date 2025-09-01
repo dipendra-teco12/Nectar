@@ -1,0 +1,205 @@
+<style>
+  .form-control {
+    height: 40px; /* Fixed height to avoid resizing */
+    padding: 10px;
+    box-sizing: border-box; /* To include padding in the height calculation */
+  }
+
+  .text-danger {
+    font-size: 0.875rem;
+    color: #dc3545;
+    margin-top: 5px;
+    min-height: 20px; /* Ensure error message space doesn't shrink or grow */
+    padding-left: 5px; /* Optional: for better alignment */
+  }
+
+  .mb-3 {
+    position: relative;
+  }
+
+  /* Ensure the error message appears below the input */
+  .text-danger {
+    margin-top: 8px;
+  }
+</style>
+
+<div class="card" id="updateProfileForm">
+  <div class="card-body">
+    <form id="updateForm" novalidate>
+      <!-- Full Name and Email in one row -->
+      <div class="mb-3 row">
+        <div class="col-sm-6">
+          <label for="fullName">Full Name</label>
+          <input
+            type="text"
+            name="fullName"
+            id="fullName"
+            class="form-control"
+            value="<%= user.fullName || '' %>"
+            required
+            minlength="2"
+          />
+          <div class="text-danger mt-1" id="fullNameError"></div>
+        </div>
+
+        <div class="col-sm-6">
+          <label for="email">Email address</label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            class="form-control"
+            value="<%= user.email || '' %>"
+            required
+          />
+          <div class="text-danger mt-1" id="emailError"></div>
+        </div>
+      </div>
+
+      <!-- Password and Confirm Password in one row -->
+      <div class="mb-3 row">
+        <div class="col-sm-6">
+          <label for="password">New Password</label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            class="form-control"
+            minlength="8"
+          />
+          <div class="text-danger mt-1" id="passwordError"></div>
+        </div>
+
+        <div class="col-sm-6">
+          <label for="confirmPassword">Confirm Password</label>
+          <input
+            type="password"
+            name="confirmPassword"
+            id="confirmPassword"
+            class="form-control"
+            minlength="8"
+          />
+          <div class="text-danger mt-1" id="confirmPasswordError"></div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Update Profile</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function () {
+    const setError = (id, msg) => $("#" + id + "Error").text(msg || "");
+
+    function validateForm() {
+      let valid = true;
+      setError("fullName", "");
+      setError("email", "");
+      setError("password", "");
+      setError("confirmPassword", "");
+
+      const name = $("#fullName").val().trim();
+      if (!name) {
+        setError("fullName", "Full name is required.");
+        valid = false;
+      } else if (name.length < 2 || name.length > 100) {
+        setError("fullName", "Name must be 2–100 characters.");
+        valid = false;
+      }
+
+      const email = $("#email").val().trim();
+      const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+      if (!email) {
+        setError("email", "Email is required.");
+        valid = false;
+      } else if (!emailRegex.test(email)) {
+        setError("email", "Enter a valid email.");
+        valid = false;
+      }
+
+      const pwd = $("#password").val();
+      const cpwd = $("#confirmPassword").val();
+      if (pwd || cpwd) {
+        if (pwd.length < 8) {
+          setError("password", "Password must be at least 8 characters.");
+          valid = false;
+        }
+        if (pwd !== cpwd) {
+          setError("confirmPassword", "Passwords do not match.");
+          valid = false;
+        }
+      }
+
+      return valid;
+    }
+
+    $("#updateForm input").on("input change", function () {
+      setError(this.id, "");
+    });
+
+    $("#updateForm").on("submit", function (e) {
+      e.preventDefault();
+      if (!validateForm()) return;
+
+      // Ask for confirmation
+      showModal({
+        title: "Update Profile",
+        message: "Are you sure you want to update your profile?",
+        confirmText: "Update",
+        onConfirm: function () {
+          const submitBtn = $("#updateForm")
+            .find("button[type='submit']")
+            .prop("disabled", true)
+            .text("Updating...");
+
+          const data = {
+            fullName: $("#fullName").val().trim(),
+            email: $("#email").val().trim(),
+            password: $("#password").val(),
+            confirmPassword: $("#confirmPassword").val(),
+          };
+
+          $.ajax({
+            url: "/api/auth/update-profile",
+            type: "PATCH",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function (response) {
+              showModal({
+                title: "Success",
+                message: response.message || "Profile updated successfully!",
+                confirmText: "OK",
+              });
+              setTimeout(() => location.reload(), 150);
+            },
+            error: function (xhr, status, error) {
+              console.error("Error:", error);
+
+              if (
+                xhr.status === 422 &&
+                xhr.responseJSON &&
+                xhr.responseJSON.error
+              ) {
+                xhr.responseJSON.error.forEach((errObj) => {
+                  setError(errObj.name, errObj.message);
+                });
+              } else {
+                showModal({
+                  title: "Error",
+                  message:
+                    xhr.responseJSON?.message ||
+                    "Update failed. Please try again.",
+                  confirmText: "Close",
+                });
+              }
+            },
+            complete: function () {
+              submitBtn.prop("disabled", false).text("Update Profile");
+            },
+          });
+        },
+      });
+    });
+  });
+</script>

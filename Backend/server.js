@@ -25,24 +25,6 @@ app.set("layout", "layouts/admin");
 app.set("layout extractScripts", true);
 app.set("layout extractStyles", true);
 
-// app.get("/", (req, res) => {
-//   res.redirect("/admin/dashboard");
-// });
-
-app.get("/", (req, res) => {
-  res.render("authViews/login", {
-    layout: false, // Don't use the admin layout for login page
-  });
-});
-
-app.get("/admin/dashboard", (req, res) => {
-  res.render("pages/dashboard", {
-    title: "Dashboard - Admin Panel",
-    pageTitle: "Dashboard",
-    breadcrumb: '<li class="breadcrumb-item active">Dashboard</li>',
-  });
-});
-
 // Session setup
 app.use(
   session({
@@ -59,10 +41,27 @@ app.use(
 app.set("view engine", "ejs");
 
 const productRoutes = require("./Routes/product.Routes");
+const adminRoutes = require("./Routes/admin.Routes");
+app.get("/", (req, res) => {
+  res.render("authViews/login", {
+    layout: false, // Don't use the admin layout for login page
+  });
+});
+
 app.use("/auth/google", oauthRoute);
 app.use("/api/auth", authRoutes);
+
+app.use("/admin", adminRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/pay", paymentRoutes);
+
+app.use((req, res, next) => {
+  next(new Error("Not found"));
+});
+
+app.use((error, req, res, next) => {
+  res.status(404).json({ error: "Path not found" });
+});
 
 app.listen(port, () => {
   connectDb();

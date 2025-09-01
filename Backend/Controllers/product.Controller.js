@@ -5,10 +5,10 @@ const Product = require("../Models/product.Model");
 const Cart = require("../Models/cart.Model");
 const setProduct = async (req, res) => {
   try {
-    const { name, price, categoryName, stock, description } = req.body;
+    const { productName, price, category, stock, description } = req.body;
 
     // Validate required fields
-    if (!name || !price || !categoryName || !description || !stock) {
+    if (!productName || !price || !category || !description || !stock) {
       return res.status(400).json({ message: "All fields required" });
     }
 
@@ -18,7 +18,7 @@ const setProduct = async (req, res) => {
 
     // Create the product
     const product = await Product.create({
-      name,
+      productName,
       price,
       stock,
       description,
@@ -26,12 +26,12 @@ const setProduct = async (req, res) => {
       imagePublicId,
     });
 
-    let category = await Category.findOne({ categoryName });
-    if (!category) {
-      category = await Category.create({ categoryName });
+    let category_data = await Category.findOne({ category });
+    if (!category_data) {
+      category_data = await Category.create({ category });
     }
-    category.categoryProduct.push(product._id);
-    await category.save();
+    category_data.categoryProduct.push(product._id);
+    await category_data.save();
 
     res.status(201).json({
       message: "Product successfully uploaded",
@@ -505,6 +505,25 @@ const getOrders = async (req, res) => {
   }
 };
 
+const cancelOrder = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    if (!orderId) {
+      res.status(400).json({ message: "order id is required" });
+    }
+
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      { status: "cancel" },
+      { new: true }
+    );
+    res.json(order);
+  } catch (error) {
+    console.error("Error while canceling order", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   setProduct,
   getProduct,
@@ -521,4 +540,5 @@ module.exports = {
   addFavouritesToCart,
   createOrder,
   getOrders,
+  cancelOrder,
 };

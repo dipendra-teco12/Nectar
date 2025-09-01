@@ -6,7 +6,12 @@ const REFRESH_SECRET_KEY = process.env.REFRESH_SECRET_KEY;
 const generateAccessToken = (user) => {
   try {
     const token = jwt.sign(
-      { _id: user._id, email: user.email, role: user.role },
+      {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+      },
       SECRET_KEY,
       {
         expiresIn: "7d",

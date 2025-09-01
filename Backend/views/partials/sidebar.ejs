@@ -23,7 +23,13 @@
         />
       </div>
       <div class="info">
-        <a href="#" class="d-block">Alexander Pierce</a>
+        <a
+          href="/admin/profile"
+          class="d-block brand-text font-weight-light"
+          style="color: aliceblue; font-size: 20px; text-decoration: none"
+          ><%= (typeof user !== 'undefined' && user.fullName) ? user.fullName :
+          'Admin' %>
+        </a>
       </div>
     </div>
 
