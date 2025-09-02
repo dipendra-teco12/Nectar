@@ -493,7 +493,9 @@ const getOrders = async (req, res) => {
     if (!userId) {
       return res.status(400).json({ message: "User Id required" });
     }
-    const orders = await Order.find({ userId });
+    const orders = await Order.find({ userId, status: "Pending" }, "-location")
+      .populate("userId", "fullName email")
+      .lean();
     if (orders.length === 0) {
       return res.status(404).json({ message: "No Orders Yet!" });
     }
@@ -509,7 +511,7 @@ const cancelOrder = async (req, res) => {
   try {
     const { orderId } = req.body;
     if (!orderId) {
-      res.status(400).json({ message: "order id is required" });
+      return res.status(400).json({ message: "order id is required" });
     }
 
     const order = await Order.findByIdAndUpdate(
@@ -524,6 +526,24 @@ const cancelOrder = async (req, res) => {
   }
 };
 
+const getAllCategory = async (req, res) => {
+  try {
+    const data = await Category.find({}, "category image categoryProduct");
+
+    if (data.length === 0) {
+      return res.status(404).json({ message: "Categories not found" });
+    }
+
+    res.status(200).json({
+      message: "Successfully fetched all the categorires",
+      data,
+    });
+  } catch (error) {
+    console.error("Error while getting all category", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   setProduct,
   getProduct,
@@ -532,6 +552,7 @@ module.exports = {
   setFavouriteProduct,
   removeFromFavouriteProduct,
   getFavouriteProducts,
+  getAllCategory,
   getCategoryProducts,
   searchProductsByName,
   addItemsToTheCart,

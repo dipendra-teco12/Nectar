@@ -12,6 +12,11 @@ const categorySchema = new mongoose.Schema({
       ref: "Product",
     },
   ],
+  image: {
+    type: String,
+    default:
+      "https://res.cloudinary.com/dfciwmday/image/upload/v1756786073/Nectar/Product/1756786071012-Screenshot_10.png.png",
+  },
 });
 
 const Category = mongoose.model("Category", categorySchema);

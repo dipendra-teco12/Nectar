@@ -1,38 +1,119 @@
 const express = require("express");
 const authenticateToken = require("../Middlewares/authenticateToken");
+const authorizeRoles = require("../Middlewares/authorizeRoles");
+const {
+  getUserList,
+  getAllProduct,
+  getOrders,
+} = require("../Controllers/admin.Controller");
 
 const router = express.Router();
 
-router.get("/dashboard", authenticateToken, (req, res) => {
-  res.render("pages/dashboard", {
-    title: "Dashboard - Admin Panel",
-    pageTitle: "Dashboard",
-    breadcrumb: '<li class="breadcrumb-item active">Dashboard</li>',
-  });
-});
+router.get(
+  "/dashboard",
+  authenticateToken,
+  authorizeRoles("admin"),
+  (req, res) => {
+    res.render("pages/dashboard", {
+      title: "Dashboard - Admin Panel",
+      pageTitle: "Dashboard",
+      breadcrumb: '<li class="breadcrumb-item active">Dashboard</li>',
+    });
+  }
+);
 
 router.get("/forgot-password", (req, res) => {
   res.render("authViews/forgotPassword", { layout: false });
 });
 
-router.get("/profile", authenticateToken, (req, res) => {
-  res.render("pages/profile", {
+router.get(
+  "/profile",
+  authenticateToken,
+  authorizeRoles("admin"),
+  (req, res) => {
+    res.render("pages/profile", {
+      title: "Profile - Admin Panel",
+      pageTitle: "Update Profile Details",
+      breadcrumb:
+        '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Profile</li>',
+      user: req.user,
+    });
+  }
+);
+
+router.get(
+  "/products/add",
+  authenticateToken,
+  authorizeRoles("admin"),
+  (req, res) => {
+    res.render("pages/addProduct", {
+      title: "Profile - Admin Panel",
+      pageTitle: "Add Product Details",
+      breadcrumb:
+        '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Product</li>',
+      user: req.user,
+    });
+  }
+);
+
+router.get("/users", authenticateToken, authorizeRoles("admin"), (req, res) => {
+  res.render("pages/users", {
     title: "Profile - Admin Panel",
-    pageTitle: "Update Profile Details",
+    pageTitle: "User Details",
     breadcrumb:
-      '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Profile</li>',
+      '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Users</li>',
     user: req.user,
   });
 });
 
-router.get("/products/add", authenticateToken, (req, res) => {
-  res.render("pages/addProduct", {
-    title: "Profile - Admin Panel",
-    pageTitle: "Add Product Details",
-    breadcrumb:
-      '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Profile</li>',
-    user: req.user, 
-  });
-});
+router.get(
+  "/products",
+  authenticateToken,
+  authorizeRoles("admin"),
+  (req, res) => {
+    res.render("pages/product", {
+      title: "Product",
+      pageTitle: "Product",
+      breadcrumb:
+        '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Products</li>',
+      user: req.user,
+    });
+  }
+);
+
+router.get(
+  "/categories",
+  authenticateToken,
+  authorizeRoles("admin"),
+  (req, res) => {
+    res.render("pages/categories", {
+      title: "Product Catagories",
+      pageTitle: "Product Categories",
+      breadcrumb:
+        '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">categories</li>',
+      user: req.user,
+    });
+  }
+);
+
+router.get(
+  "/orders",
+  authenticateToken,
+  authorizeRoles("admin"),
+  (req, res) => {
+    res.render("pages/orders", {
+      title: "Orders",
+      pageTitle: "Total Orders",
+      breadcrumb:
+        '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Orders</li>',
+      user: req.user,
+    });
+  }
+);
+
+router.get("/userlist", authenticateToken, getUserList);
+router.get("/productlist", authenticateToken, getAllProduct);
+
+router.get("/orders/list", authenticateToken, getOrders);
 
 module.exports = router;

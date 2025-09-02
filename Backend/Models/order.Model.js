@@ -3,7 +3,8 @@ const Product = require("./product.Model");
 
 const orderSchema = new mongoose.Schema({
   userId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
     required: true,
   },
   Products: [
@@ -62,7 +63,7 @@ orderSchema.index({ location: "2dsphere" });
 
 orderSchema.pre("save", function (next) {
   this.Products.forEach((item) => {
-    item.total = item.quantity * item.price; 
+    item.total = item.quantity * item.price;
   });
 
   this.subtotal = this.Products.reduce((acc, item) => acc + item.total, 0);

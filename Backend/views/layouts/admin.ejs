@@ -25,10 +25,14 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css"
     />
-    <!-- DataTables (optional - for table features) -->
+    <!-- DataTables CSS -->
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.13.6/css/dataTables.bootstrap4.min.css"
+      href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css"
     />
     <!-- Your custom CSS -->
     <link rel="stylesheet" href="/css/custom.css" />
@@ -127,28 +131,50 @@
       </div>
     </div>
 
-    <!-- jQuery -->
+    <!-- JAVASCRIPT SECTION - CORRECT ORDER -->
+
+    <!-- Step 1: jQuery FIRST -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <!-- jQuery UI -->
+
+    <!-- Step 2: jQuery UI -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
 
-    <!-- jQuery Validation -->
+    <!-- Step 3: Bootstrap -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Step 4: DataTables (SINGLE INCLUDE) -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap4.min.js"></script>
+
+    <!-- Step 5: jQuery Validation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/additional-methods.min.js"></script>
-    <!-- Bootstrap 4 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
-    <!-- DataTables  & Plugins -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.13.6/js/dataTables.bootstrap4.min.js"></script>
-    <!-- AdminLTE App -->
+
+    <!-- Step 6: AdminLTE -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
-    <!-- Your custom JS -->
+
+    <!-- Step 7: SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Step 8: Your custom JS -->
     <script src="/js/custom.js"></script>
+
+    <!-- Page specific scripts -->
     <%- script %>
 
+    <!-- Global JavaScript Functions -->
     <script>
       $(document).ready(function () {
-        // Initialize DataTables
+        console.log("jQuery loaded:", typeof $ !== "undefined");
+        console.log(
+          "DataTables loaded:",
+          typeof $.fn.DataTable !== "undefined"
+        );
+        console.log("SweetAlert loaded:", typeof Swal !== "undefined");
+
+        // Initialize DataTables for elements with .data-table class
         if ($.fn.DataTable) {
           $(".data-table").DataTable({
             responsive: true,
@@ -157,8 +183,8 @@
           });
         }
       });
-    </script>
-    <script>
+
+      // Global Modal Function
       let modalCallback = null;
       let modalCancelCallback = null;
 
@@ -206,16 +232,13 @@
 
       // Handle confirm button click
       $("#globalModalConfirmBtn").on("click", function () {
-        // Remove focus before hiding to prevent accessibility warning
         $(this).blur();
         $("#globalModal").modal("hide");
 
-        // Execute confirm callback after modal is fully hidden
         setTimeout(() => {
           if (typeof modalCallback === "function") {
             modalCallback();
           }
-          // Reset callbacks
           modalCallback = null;
           modalCancelCallback = null;
         }, 300);
@@ -223,7 +246,6 @@
 
       // Handle cancel button click
       $(document).on("click", ".modal-footer .btn-danger", function () {
-        // Remove focus before hiding
         $(this).blur();
         $("#globalModal").modal("hide");
 
@@ -231,18 +253,19 @@
           if (typeof modalCancelCallback === "function") {
             modalCancelCallback();
           }
-          // Reset callbacks
           modalCallback = null;
           modalCancelCallback = null;
         }, 300);
       });
 
-      // Handle when modal is closed without clicking any button (ESC key, clicking outside, etc.)
+      // Handle when modal is closed
       $("#globalModal").on("hidden.bs.modal", function () {
-        // Reset callbacks when modal is hidden
         modalCallback = null;
         modalCancelCallback = null;
       });
+
+      // Make showModal globally available
+      window.showModal = showModal;
     </script>
   </body>
 </html>

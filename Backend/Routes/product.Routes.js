@@ -19,6 +19,7 @@ const {
   createOrder,
   getOrders,
   cancelOrder,
+  getAllCategory,
 } = require("../Controllers/product.Controller");
 
 const upload = require("../Middlewares/multer");
@@ -47,6 +48,7 @@ router.delete(
 );
 
 router.get("/favourite-product", authenticateToken, getFavouriteProducts);
+router.get("/category-list", authenticateToken, getAllCategory);
 router.get("/category/:categoryId", authenticateToken, getCategoryProducts);
 
 router.post("/add-item/:productId", authenticateToken, addItemsToTheCart);

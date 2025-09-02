@@ -1,0 +1,536 @@
+<section class="content">
+  <div class="container-fluid">
+    <!-- Header Row -->
+    <div class="row mb-3">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+         
+        </div>
+    </div>
+    </div>
+    
+    <!-- Search Row -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+        <div class="input-group">
+            <input
+            type="text"
+            class="form-control"
+            id="searchInput"
+            placeholder="Search categories..."
+            />
+            <div class="input-group-append">
+                <button
+                class="btn btn-outline-secondary"
+                type="button"
+                id="searchBtn"
+                >
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+</div>
+<div class="col-md-6">
+    <div class="d-flex justify-content-end align-items-center">
+        <label class="mb-0 mr-2">View:</label>
+        <div class="btn-group" role="group">
+            <button
+            type="button"
+              class="btn btn-outline-secondary btn-sm active"
+              id="cardView"
+              >
+              <i class="fas fa-th-large"></i> Cards
+            </button>
+            <button
+            type="button"
+              class="btn btn-outline-secondary btn-sm"
+              id="listView"
+              >
+              <i class="fas fa-list"></i> List
+            </button>
+                <div>
+                
+                <button
+                    type="button"
+                    class="btn btn-primary ml-2"
+                    id="refreshCategories"
+                >
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="row" id="loadingSpinner" style="display: none">
+      <div class="col-12">
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+          <p class="mt-2">Loading categories...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories Container -->
+    <div class="row" id="categoriesContainer">
+      <!-- Categories will be loaded here -->
+    </div>
+
+    <!-- No Categories Found -->
+    <div class="row" id="noCategoriesFound" style="display: none">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body text-center">
+            <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+            <h4>No Categories Found</h4>
+            <p class="text-muted">
+              There are no categories to display at the moment.
+            </p>
+            <!-- <button
+              type="button"
+              class="btn btn-primary"
+              onclick="window.location.href='/admin/categories/add'"
+            >
+              <i class="fas fa-plus"></i> Add First Category
+            </button> -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+  </div>
+</div>
+
+<style>
+  .category-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+  }
+
+  .category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .category-image {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+    border-radius: 5px 5px 0 0;
+  }
+
+  .category-image-placeholder {
+    height: 200px;
+    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px 5px 0 0;
+  }
+
+  .category-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .category-card:hover .category-actions {
+    opacity: 1;
+  }
+
+  .category-stats {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    border-radius: 0 0 5px 5px;
+  }
+
+  .list-view .category-card {
+    margin-bottom: 15px;
+  }
+
+  .list-view .category-card .row {
+    align-items: center;
+  }
+
+  .list-view .category-image {
+    height: 80px;
+    width: 80px;
+    border-radius: 50%;
+  }
+
+  .search-highlight {
+    background-color: yellow;
+    font-weight: bold;
+  }
+
+  .btn-group .btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
+</style>
+
+<script>
+  $(document).ready(function () {
+    let allCategories = [];
+    let currentView = "card"; // 'card' or 'list'
+
+    // Load categories on page load
+    loadCategories();
+
+    // Refresh button
+    $("#refreshCategories").on("click", function () {
+      loadCategories();
+      showToast("Categories refreshed", "success");
+    });
+
+    // Search functionality
+    $("#searchInput").on("input", function () {
+      filterCategories();
+    });
+
+    $("#searchBtn").on("click", function () {
+      filterCategories();
+    });
+
+    // View toggle
+    $("#cardView").on("click", function () {
+      if (!$(this).hasClass("active")) {
+        $("#listView").removeClass("active");
+        $(this).addClass("active");
+        currentView = "card";
+        displayCategories(allCategories);
+      }
+    });
+
+    $("#listView").on("click", function () {
+      if (!$(this).hasClass("active")) {
+        $("#cardView").removeClass("active");
+        $(this).addClass("active");
+        currentView = "list";
+        displayCategories(allCategories);
+      }
+    });
+
+    // Load categories from API
+    function loadCategories() {
+      $("#loadingSpinner").show();
+      $("#categoriesContainer").empty();
+      $("#noCategoriesFound").hide();
+
+      $.ajax({
+        url: "/api/product/category-list", // Adjust this URL to match your API endpoint
+        type: "GET",
+        success: function (response) {
+          allCategories = response.data || [];
+          displayCategories(allCategories);
+        },
+        error: function (xhr, status, error) {
+          console.error("Error loading categories:", error);
+          showToast("Error loading categories", "error");
+          $("#categoriesContainer").html(`
+                    <div class="col-12">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Error loading categories. Please try again.
+                        </div>
+                    </div>
+                `);
+        },
+        complete: function () {
+          $("#loadingSpinner").hide();
+        },
+      });
+    }
+
+    // Display categories based on current view
+    function displayCategories(categories) {
+      const container = $("#categoriesContainer");
+      container.empty();
+
+      if (categories.length === 0) {
+        $("#noCategoriesFound").show();
+        return;
+      }
+
+      $("#noCategoriesFound").hide();
+
+      if (currentView === "card") {
+        displayCardView(categories);
+      } else {
+        displayListView(categories);
+      }
+    }
+
+    // Card view display
+    function displayCardView(categories) {
+      const container = $("#categoriesContainer");
+      container.removeClass("list-view");
+
+      categories.forEach((category) => {
+        const imageUrl = category.image || "";
+        const categoryName = category.category || "Unnamed Category";
+        const productCount = category.categoryProduct.length || 0;
+
+        const cardHtml = `
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card category-card">
+                        <div class="card-img-top position-relative">
+                            ${
+                              imageUrl
+                                ? `<img src="${imageUrl}" alt="${categoryName}" class="category-image">`
+                                : `<div class="category-image-placeholder">
+                                    <div class="text-center">
+                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                        <p class="text-muted mt-2">No Image</p>
+                                    </div>
+                                </div>`
+                            }
+                           
+                            <div class="category-stats">
+                                <small><i class="fas fa-box"></i> ${productCount} Products</small>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">${categoryName}</h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                  
+                                </small>
+                                <button class="btn btn-outline-primary btn-sm view-products" data-category="${categoryName}">
+                                    View Products
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        container.append(cardHtml);
+      });
+    }
+
+    // List view display
+    function displayListView(categories) {
+      const container = $("#categoriesContainer");
+      container.addClass("list-view");
+
+      categories.forEach((category) => {
+        const imageUrl = category.image || "";
+        const categoryName = category.category || "Unnamed Category";
+        const productCount = category.categoryProduct.length || 0;
+
+        const listHtml = `
+                <div class="col-12 mb-3">
+                    <div class="card category-card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-1">
+                                    ${
+                                      imageUrl
+                                        ? `<img src="${imageUrl}" alt="${categoryName}" class="category-image">`
+                                        : `<div class="category-image bg-light d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>`
+                                    }
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="mb-1">${categoryName}</h5>
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-box"></i> ${productCount} Products | 
+                                        <i class="fas fa-calendar-alt"></i> 
+                                        ${
+                                          category.createdAt
+                                            ? new Date(
+                                                category.createdAt
+                                              ).toLocaleDateString()
+                                            : "Unknown"
+                                        }
+                                    </p>
+                                </div>
+                                <div class="col-md-5 text-right">
+                                   
+                                    <button class="btn btn-danger btn-sm delete-category ml-1" data-id="${
+                                      category._id
+                                    }" data-name="${categoryName}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                    <button class="btn btn-outline-primary btn-sm view-products ml-1" data-category="${categoryName}">
+                                        Products
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        container.append(listHtml);
+      });
+    }
+
+    // Filter categories based on search
+    function filterCategories() {
+      const searchTerm = $("#searchInput").val().toLowerCase().trim();
+
+      if (searchTerm === "") {
+        displayCategories(allCategories);
+        return;
+      }
+
+      const filtered = allCategories.filter((category) => {
+        return category.category.toLowerCase().includes(searchTerm);
+      });
+
+      displayCategories(filtered);
+    }
+
+    // View category details
+    $(document).on("click", ".view-category", function () {
+      const categoryId = $(this).data("id");
+      const categoryName = $(this).data("name");
+
+      $("#categoryModalTitle").text(categoryName);
+      $("#categoryModalBody").html(`
+            <div class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <p>Loading category details...</p>
+            </div>
+        `);
+      $("#editCategoryBtn").data("id", categoryId);
+      $("#categoryModal").modal("show");
+
+      // Load category details (you can extend this with more details)
+      setTimeout(() => {
+        const category = allCategories.find((cat) => cat._id === categoryId);
+        $("#categoryModalBody").html(`
+                <div class="row">
+                    <div class="col-md-4">
+                        ${
+                          category.image
+                            ? `<img src="${category.image}" alt="${category.category}" class="img-fluid rounded">`
+                            : `<div class="text-center p-4 bg-light rounded">
+                                <i class="fas fa-image fa-4x text-muted"></i>
+                                <p class="text-muted mt-2">No Image</p>
+                            </div>`
+                        }
+                    </div>
+                    <div class="col-md-8">
+                        <h4>${category.category}</h4>
+                        <p><strong>Products:</strong> ${
+                          category.productCount || 0
+                        } items</p>
+                        <p><strong>Created:</strong> ${
+                          category.createdAt
+                            ? new Date(category.createdAt).toLocaleDateString()
+                            : "Unknown"
+                        }</p>
+                        <p><strong>Status:</strong> <span class="badge badge-success">Active</span></p>
+                    </div>
+                </div>
+            `);
+      }, 500);
+    });
+
+    // Edit category
+    $(document).on("click", ".edit-category", function () {
+      const categoryId = $(this).data("id");
+      window.location.href = `/admin/categories/edit/${categoryId}`;
+    });
+
+    $("#editCategoryBtn").on("click", function () {
+      const categoryId = $(this).data("id");
+      window.location.href = `/admin/categories/edit/${categoryId}`;
+    });
+
+    // Delete category
+    $(document).on("click", ".delete-category", function () {
+      const categoryId = $(this).data("id");
+      const categoryName = $(this).data("name");
+
+      $("#deleteCategoryName").text(categoryName);
+      $("#confirmDelete").data("id", categoryId);
+      $("#deleteModal").modal("show");
+    });
+
+    $("#confirmDelete").on("click", function () {
+      const categoryId = $(this).data("id");
+      const button = $(this);
+
+      button
+        .prop("disabled", true)
+        .html(
+          '<span class="spinner-border spinner-border-sm"></span> Deleting...'
+        );
+
+      $.ajax({
+        url: `/api/categories/${categoryId}`,
+        type: "DELETE",
+        success: function (response) {
+          $("#deleteModal").modal("hide");
+          loadCategories(); // Reload categories
+          showToast(
+            response.message || "Category deleted successfully",
+            "success"
+          );
+        },
+        error: function (xhr, status, error) {
+          console.error("Delete Error:", error);
+          showToast("Failed to delete category", "error");
+        },
+        complete: function () {
+          button.prop("disabled", false).text("Delete Category");
+        },
+      });
+    });
+
+    // View products in category
+    $(document).on("click", ".view-products", function () {
+      const categoryName = $(this).data("category");
+      window.location.href = `/admin/products?category=${encodeURIComponent(
+        categoryName
+      )}`;
+    });
+
+    // Toast notification function
+    function showToast(message, type = "info") {
+      if (typeof Swal !== "undefined") {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
+        });
+
+        Toast.fire({
+          icon: type,
+          title: message,
+        });
+      } else {
+        alert(message);
+      }
+    }
+
+    // Make functions globally available
+    window.showToast = showToast;
+  });
+</script>
