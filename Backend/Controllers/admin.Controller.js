@@ -1,6 +1,8 @@
 const User = require("../Models/user.Model");
 const Product = require("../Models/product.Model");
 const Order = require("../Models/order.Model");
+const PrivacyPolicy = require("../Models/privacyPolicy.Model");
+
 const getUserList = async (req, res) => {
   try {
     // Get pagination parameters from query string
@@ -300,4 +302,30 @@ const getOrders = async (req, res) => {
     });
   }
 };
-module.exports = { getUserList, getAllProduct, getOrders };
+
+const privacy_policy = async (req, res) => {
+  try {
+    const policy = await PrivacyPolicy.findOne();
+    res.json({ policy: policy || { html: "" } });
+  } catch (error) {
+    res.status(500).json({ message: "Error loading privacy policy" });
+  }
+};
+
+const save_privacy = async (req, res) => {
+  try {
+    const { html } = req.body;
+
+    await PrivacyPolicy.findOneAndUpdate({}, { html }, { upsert: true });
+    res.json({ message: "Privacy policy saved successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error saving privacy policy" });
+  }
+};
+module.exports = {
+  getUserList,
+  getAllProduct,
+  getOrders,
+  privacy_policy,
+  save_privacy,
+};

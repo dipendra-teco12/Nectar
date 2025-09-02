@@ -5,6 +5,8 @@ const {
   getUserList,
   getAllProduct,
   getOrders,
+  privacy_policy,
+  save_privacy,
 } = require("../Controllers/admin.Controller");
 
 const router = express.Router();
@@ -110,6 +112,24 @@ router.get(
     });
   }
 );
+
+router.get(
+  "/text-editor",
+  authenticateToken,
+  authorizeRoles("admin"),
+  (req, res) => {
+    res.render("pages/text-editor", {
+      title: "Privacy Policy",
+      pageTitle: "Privacy Policy",
+      breadcrumb:
+        '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Orders</li>',
+      user: req.user,
+    });
+  }
+);
+
+router.get("/privacy-policy", privacy_policy);
+router.post("/save-privacy", save_privacy);
 
 router.get("/userlist", authenticateToken, getUserList);
 router.get("/productlist", authenticateToken, getAllProduct);

@@ -345,14 +345,16 @@
                             <button class="btn btn-warning btn-sm update-status" data-id="${row.id}" data-status="${row.status}" title="Update Status">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-success btn-sm print-order" data-id="${row.id}" title="Print Order">
-                                <i class="fas fa-print"></i>
-                            </button>
+                           
                         </div>
                     `;
           },
         },
       ],
+
+      // <button class="btn btn-success btn-sm print-order" data-id="${row.id}" title="Print Order">
+      //                         <i class="fas fa-print"></i>
+      //                     </button>
       order: [[6, "desc"]], // Sort by date (newest first)
       pageLength: 10,
       lengthMenu: [
