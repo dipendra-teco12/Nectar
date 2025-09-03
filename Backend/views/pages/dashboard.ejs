@@ -4,13 +4,20 @@
     <!-- small box -->
     <div class="small-box bg-info">
       <div class="inner">
-        <h3>150</h3>
+        <h3 id="orderCount">
+          <div
+            class="spinner-border spinner-border-sm text-white"
+            role="status"
+          >
+            <span class="sr-only">Loading...</span>
+          </div>
+        </h3>
         <p>New Orders</p>
       </div>
       <div class="icon">
         <i class="ion ion-bag"></i>
       </div>
-      <a href="#" class="small-box-footer"
+      <a href="/admin/orders?status=Pending" class="small-box-footer"
         >More info <i class="fas fa-arrow-circle-right"></i
       ></a>
     </div>
@@ -20,13 +27,20 @@
     <!-- small box -->
     <div class="small-box bg-success">
       <div class="inner">
-        <h3>53<sup style="font-size: 20px">%</sup></h3>
-        <p>Bounce Rate</p>
+        <h3 id="deliveredCount">
+          <div
+            class="spinner-border spinner-border-sm text-white"
+            role="status"
+          >
+            <span class="sr-only">Loading...</span>
+          </div>
+        </h3>
+        <p>Delivered Orders</p>
       </div>
       <div class="icon">
         <i class="ion ion-stats-bars"></i>
       </div>
-      <a href="#" class="small-box-footer"
+      <a href="/admin/orders?status=Delivered" class="small-box-footer"
         >More info <i class="fas fa-arrow-circle-right"></i
       ></a>
     </div>
@@ -36,13 +50,20 @@
     <!-- small box -->
     <div class="small-box bg-warning">
       <div class="inner">
-        <h3>44</h3>
-        <p>User Registrations</p>
+        <h3 id="activeUserCount">
+          <div
+            class="spinner-border spinner-border-sm text-white"
+            role="status"
+          >
+            <span class="sr-only">Loading...</span>
+          </div>
+        </h3>
+        <p>Active Users</p>
       </div>
       <div class="icon">
         <i class="ion ion-person-add"></i>
       </div>
-      <a href="#" class="small-box-footer"
+      <a href="/admin/users" class="small-box-footer"
         >More info <i class="fas fa-arrow-circle-right"></i
       ></a>
     </div>
@@ -52,13 +73,20 @@
     <!-- small box -->
     <div class="small-box bg-danger">
       <div class="inner">
-        <h3>65</h3>
-        <p>Unique Visitors</p>
+        <h3 id="totalRevenue">
+          <div
+            class="spinner-border spinner-border-sm text-white"
+            role="status"
+          >
+            <span class="sr-only">Loading...</span>
+          </div>
+        </h3>
+        <p>Total Revenue</p>
       </div>
       <div class="icon">
         <i class="ion ion-pie-graph"></i>
       </div>
-      <a href="#" class="small-box-footer"
+      <a href="/admin/reports/revenue" class="small-box-footer"
         >More info <i class="fas fa-arrow-circle-right"></i
       ></a>
     </div>
@@ -66,6 +94,67 @@
   <!-- ./col -->
 </div>
 <!-- /.row -->
+
+<!-- Additional Stats Row -->
+<div class="row">
+  <div class="col-lg-3 col-6">
+    <div class="info-box">
+      <span class="info-box-icon bg-info"
+        ><i class="fas fa-shopping-cart"></i
+      ></span>
+      <div class="info-box-content">
+        <span class="info-box-text">Products</span>
+        <span class="info-box-number" id="productCount">
+          <div class="spinner-border spinner-border-sm" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-3 col-6">
+    <div class="info-box">
+      <span class="info-box-icon bg-success"><i class="fas fa-tags"></i></span>
+      <div class="info-box-content">
+        <span class="info-box-text">Categories</span>
+        <span class="info-box-number" id="categoryCount">
+          <div class="spinner-border spinner-border-sm" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-3 col-6">
+    <div class="info-box">
+      <span class="info-box-icon bg-warning"><i class="fas fa-clock"></i></span>
+      <div class="info-box-content">
+        <span class="info-box-text">Pending Orders</span>
+        <span class="info-box-number" id="pendingOrders">
+          <div class="spinner-border spinner-border-sm" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-3 col-6">
+    <div class="info-box">
+      <span class="info-box-icon bg-danger"
+        ><i class="fas fa-exclamation-triangle"></i
+      ></span>
+      <div class="info-box-content">
+        <span class="info-box-text">Low Stock Items</span>
+        <span class="info-box-number" id="lowStockCount">
+          <div class="spinner-border spinner-border-sm" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="row">
   <!-- Left col -->
   <section class="col-lg-7 connectedSortable ui-sortable">
@@ -74,21 +163,29 @@
       <div class="card-header ui-sortable-handle" style="cursor: move">
         <h3 class="card-title">
           <i class="fas fa-chart-pie mr-1"></i>
-          Sales
+          Sales Analytics
         </h3>
         <div class="card-tools">
           <ul class="nav nav-pills ml-auto">
             <li class="nav-item">
               <a class="nav-link active" href="#revenue-chart" data-toggle="tab"
-                >Area</a
+                >Revenue</a
               >
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#sales-chart" data-toggle="tab"
-                >Donut</a
+                >Orders</a
               >
             </li>
           </ul>
+          <button
+            type="button"
+            class="btn btn-tool ml-2"
+            id="refreshCharts"
+            title="Refresh Charts"
+          >
+            <i class="fas fa-sync-alt"></i>
+          </button>
         </div>
       </div>
       <!-- /.card-header -->
@@ -100,19 +197,10 @@
             id="revenue-chart"
             style="position: relative; height: 300px"
           >
-            <div class="chartjs-size-monitor">
-              <div class="chartjs-size-monitor-expand">
-                <div class=""></div>
-              </div>
-              <div class="chartjs-size-monitor-shrink">
-                <div class=""></div>
-              </div>
-            </div>
             <canvas
               id="revenue-chart-canvas"
               height="300"
-              style="height: 300px; display: block; width: 650px"
-              width="650"
+              style="height: 300px; display: block"
               class="chartjs-render-monitor"
             ></canvas>
           </div>
@@ -123,10 +211,9 @@
           >
             <canvas
               id="sales-chart-canvas"
-              height="0"
-              style="height: 0px; display: block; width: 0px"
+              height="300"
+              style="height: 300px; display: block"
               class="chartjs-render-monitor"
-              width="0"
             ></canvas>
           </div>
         </div>
@@ -134,10 +221,85 @@
       <!-- /.card-body -->
     </div>
     <!-- /.card -->
+
+    <!-- Recent Orders Card -->
+    <!-- <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-shopping-cart mr-1"></i>
+          Recent Orders
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" id="refreshOrders">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="recentOrdersTable">
+              <tr>
+                <td colspan="5" class="text-center">
+                  <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div> -->
   </section>
   <!-- /.Left col -->
-  <!-- right col (We are only adding the ID to make the widgets sortable)-->
+
+  <!-- right col -->
   <section class="col-lg-5 connectedSortable ui-sortable">
+    <!-- Quick Actions Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-bolt mr-1"></i>
+          Quick Actions
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-6">
+            <a href="/admin/products/add" class="btn btn-primary btn-block">
+              <i class="fas fa-plus"></i> Add Product
+            </a>
+          </div>
+          <div class="col-6">
+            <a href="/admin/orders" class="btn btn-info btn-block">
+              <i class="fas fa-list"></i> View Orders
+            </a>
+          </div>
+        </div>
+        <div class="row mt-2">
+          <div class="col-6">
+            <a href="/admin/products" class="btn btn-success btn-block">
+              <i class="nav-icon fas fa-box"></i> All Products
+            </a>
+          </div>
+          <div class="col-6">
+            <a href="/admin/users" class="btn btn-warning btn-block">
+              <i class="fas fa-users"></i> Manage Users
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Calendar -->
     <div class="card bg-gradient-success">
       <div class="card-header border-0 ui-sortable-handle" style="cursor: move">
@@ -145,25 +307,7 @@
           <i class="far fa-calendar-alt"></i>
           Calendar
         </h3>
-        <!-- tools card -->
         <div class="card-tools">
-          <!-- button with a dropdown -->
-          <div class="btn-group">
-            <button
-              type="button"
-              class="btn btn-success btn-sm dropdown-toggle"
-              data-toggle="dropdown"
-              data-offset="-52"
-            >
-              <i class="fas fa-bars"></i>
-            </button>
-            <div class="dropdown-menu" role="menu">
-              <a href="#" class="dropdown-item">Add new event</a>
-              <a href="#" class="dropdown-item">Clear events</a>
-              <div class="dropdown-divider"></div>
-              <a href="#" class="dropdown-item">View calendar</a>
-            </div>
-          </div>
           <button
             type="button"
             class="btn btn-success btn-sm"
@@ -179,9 +323,7 @@
             <i class="fas fa-times"></i>
           </button>
         </div>
-        <!-- /. tools -->
       </div>
-      <!-- /.card-header -->
       <div class="card-body pt-0">
         <!--The calendar -->
         <div id="calendar" style="width: 100%">
@@ -243,14 +385,14 @@
                           <td
                             data-action="selectDay"
                             data-day="09/02/2025"
-                            class="day active today"
+                            class="day"
                           >
                             2
                           </td>
                           <td
                             data-action="selectDay"
                             data-day="09/03/2025"
-                            class="day"
+                            class="day active today"
                           >
                             3
                           </td>
@@ -755,9 +897,236 @@
           </div>
         </div>
       </div>
-      <!-- /.card-body -->
     </div>
-    <!-- /.card -->
   </section>
   <!-- right col -->
 </div>
+
+<script>
+  $(document).ready(function () {
+    // Auto-refresh interval (in milliseconds)
+    const REFRESH_INTERVAL = 30000; // 30 seconds
+
+    // Load dashboard data on page load
+    loadDashboardData();
+    // loadRecentOrders();
+    // loadSystemStatus();
+
+    // Set up auto-refresh
+    setInterval(function () {
+      loadDashboardData();
+      // loadRecentOrders();
+    }, REFRESH_INTERVAL);
+
+    // Manual refresh buttons
+    $("#refreshCharts").on("click", function () {
+      loadDashboardData();
+      showToast("Charts refreshed", "success");
+    });
+
+    $("#refreshOrders").on("click", function () {
+      loadRecentOrders();
+      showToast("Orders refreshed", "success");
+    });
+
+    $("#refreshStatus").on("click", function () {
+      loadSystemStatus();
+      showToast("Status refreshed", "success");
+    });
+
+    // Load main dashboard statistics
+    function loadDashboardData() {
+      $.ajax({
+        url: "/admin/dashboard/stats", // Adjust this URL to match your API endpoint
+        type: "GET",
+        success: function (response) {
+          if (response.data) {
+            updateStatBoxes(response.data);
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("Error loading dashboard data:", error);
+          showError();
+        },
+      });
+    }
+
+    // Update stat boxes with data
+    function updateStatBoxes(data) {
+      // Animate numbers
+      animateNumber("#orderCount", data.orderCount || 0);
+      animateNumber("#deliveredCount", data.deliveredCount || 0);
+      animateNumber("#activeUserCount", data.activeUser || 0);
+      animateNumber(
+        "#totalRevenue",
+        "₹" + (data.totalRevenue || 0).toLocaleString()
+      );
+      animateNumber("#productCount", data.productCount || 0);
+      animateNumber("#categoryCount", data.categoryCount || 0);
+      animateNumber("#pendingOrders", data.pendingOrders || 0);
+      animateNumber("#lowStockCount", data.lowStockCount || 0);
+    }
+
+    // Animate number changes
+    function animateNumber(selector, endValue) {
+      const element = $(selector);
+      const isSpinner = element.find(".spinner-border").length > 0;
+
+      if (isSpinner) {
+        element.html(endValue);
+        element.hide().fadeIn(500);
+      } else {
+        // Simple animation for number changes
+        element.fadeOut(200, function () {
+          element.html(endValue).fadeIn(300);
+        });
+      }
+    }
+
+    // Load recent orders
+    // function loadRecentOrders() {
+    //   $.ajax({
+    //     url: "/api/dashboard/recent-orders", // Adjust this URL
+    //     type: "GET",
+    //     success: function (response) {
+    //       updateRecentOrdersTable(response.data || []);
+    //     },
+    //     error: function (xhr, status, error) {
+    //       console.error("Error loading recent orders:", error);
+    //       $("#recentOrdersTable").html(
+    //         '<tr><td colspan="5" class="text-center text-danger">Error loading orders</td></tr>'
+    //       );
+    //     },
+    //   });
+    // }
+
+    // Update recent orders table
+    function updateRecentOrdersTable(orders) {
+      let html = "";
+
+      if (orders.length === 0) {
+        html =
+          '<tr><td colspan="5" class="text-center text-muted">No recent orders found</td></tr>';
+      } else {
+        orders.forEach((order) => {
+          const statusClass = getStatusBadgeClass(order.status);
+          html += `
+                    <tr>
+                        <td><small class="text-muted">${order.id.substring(
+                          0,
+                          8
+                        )}...</small></td>
+                        <td>${order.customerName}</td>
+                        <td>₹${parseFloat(order.amount).toFixed(2)}</td>
+                        <td><span class="badge ${statusClass}">${
+            order.status
+          }</span></td>
+                        <td><small>${new Date(
+                          order.date
+                        ).toLocaleDateString()}</small></td>
+                    </tr>
+                `;
+        });
+      }
+
+      $("#recentOrdersTable").html(html);
+    }
+
+    // Get status badge class
+    function getStatusBadgeClass(status) {
+      switch (status.toLowerCase()) {
+        case "pending":
+          return "badge-warning";
+        case "processing":
+          return "badge-info";
+        case "shipped":
+          return "badge-primary";
+        case "delivered":
+          return "badge-success";
+        case "cancelled":
+          return "badge-danger";
+        default:
+          return "badge-secondary";
+      }
+    }
+
+    // Load system status
+    function loadSystemStatus() {
+      $.ajax({
+        url: "/api/dashboard/system-status",
+        type: "GET",
+        success: function (response) {
+          if (response.data) {
+            updateSystemStatus(response.data);
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("Error loading system status:", error);
+          // Set default values on error
+          updateSystemStatus({
+            database: { status: "Unknown", percentage: 0 },
+            server: { status: "Unknown", percentage: 0 },
+            storage: { status: "Unknown", percentage: 0 },
+          });
+        },
+      });
+    }
+
+    // Update system status displays
+    function updateSystemStatus(data) {
+      // Database status
+      $("#dbStatus").text(data.database?.status || "Unknown");
+      $("#dbProgressBar").css("width", (data.database?.percentage || 0) + "%");
+
+      // Server status
+      $("#serverStatus").text(data.server?.status || "Unknown");
+      $("#serverProgressBar").css(
+        "width",
+        (data.server?.percentage || 0) + "%"
+      );
+
+      // Storage status
+      $("#storageStatus").text(data.storage?.status || "Unknown");
+      $("#storageProgressBar").css(
+        "width",
+        (data.storage?.percentage || 0) + "%"
+      );
+    }
+
+    // Show error state
+    function showError() {
+      $("#orderCount").html(
+        '<i class="fas fa-exclamation-triangle text-danger"></i>'
+      );
+      $("#deliveredCount").html(
+        '<i class="fas fa-exclamation-triangle text-danger"></i>'
+      );
+      $("#activeUserCount").html(
+        '<i class="fas fa-exclamation-triangle text-danger"></i>'
+      );
+      $("#totalRevenue").html(
+        '<i class="fas fa-exclamation-triangle text-danger"></i>'
+      );
+      showToast("Error loading dashboard data", "error");
+    }
+
+    // Toast notification function
+    function showToast(message, type = "info") {
+      if (typeof Swal !== "undefined") {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        });
+        Toast.fire({ icon: type, title: message });
+      } else {
+        console.log(message);
+      }
+    }
+
+    // Make showToast globally available
+    window.showToast = showToast;
+  });
+</script>

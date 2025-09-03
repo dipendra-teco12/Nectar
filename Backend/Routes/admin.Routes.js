@@ -7,6 +7,7 @@ const {
   getOrders,
   privacy_policy,
   save_privacy,
+  dashboardCount,
 } = require("../Controllers/admin.Controller");
 
 const router = express.Router();
@@ -75,7 +76,7 @@ router.get(
   (req, res) => {
     res.render("pages/product", {
       title: "Product",
-      pageTitle: "Product",
+      pageTitle: "Product Management",
       breadcrumb:
         '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Products</li>',
       user: req.user,
@@ -105,7 +106,7 @@ router.get(
   (req, res) => {
     res.render("pages/orders", {
       title: "Orders",
-      pageTitle: "Total Orders",
+      pageTitle: "order management",
       breadcrumb:
         '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Orders</li>',
       user: req.user,
@@ -120,7 +121,7 @@ router.get(
   (req, res) => {
     res.render("pages/text-editor", {
       title: "Privacy Policy",
-      pageTitle: "Privacy Policy",
+      pageTitle: "text-editor",
       breadcrumb:
         '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Orders</li>',
       user: req.user,
@@ -135,5 +136,7 @@ router.get("/userlist", authenticateToken, getUserList);
 router.get("/productlist", authenticateToken, getAllProduct);
 
 router.get("/orders/list", authenticateToken, getOrders);
+
+router.get("/dashboard/stats", authenticateToken, dashboardCount);
 
 module.exports = router;

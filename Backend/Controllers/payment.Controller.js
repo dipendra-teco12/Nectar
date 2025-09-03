@@ -15,6 +15,7 @@ const createPayment = async (req, res) => {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+
   const create_payment_json = {
     intent: "sale",
     payer: { payment_method: "paypal" },

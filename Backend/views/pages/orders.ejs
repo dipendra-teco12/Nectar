@@ -250,111 +250,173 @@
       processing: true,
       serverSide: true,
       ajax: {
-        url: "/admin/orders/list", // Adjust this URL to match your API endpoint
+        url: "/admin/orders/list",
         type: "GET",
         data: function (d) {
-          return {
+          // Send parameters in the format your server expects
+          const params = {
             draw: d.draw,
-            page: Math.floor(d.start / d.length) + 1,
-            limit: d.length,
-            search: d.search,
-            status: $("#statusFilter").val(),
+            start: d.start,
+            length: d.length,
+            search: d.search.value, // Extract the actual search string
+            order_column: d.order[0]?.column || 6, // Default to date column
+            order_dir: d.order[0]?.dir || "desc",
+            status: $("#statusFilter").val() || "all", // Include status filter
           };
+
+          return params;
         },
         dataSrc: function (json) {
-          return json.data || [];
+          // Check if response has the expected structure
+          if (!json.data) {
+            console.error("Invalid server response - missing data array");
+            return [];
+          }
+
+          return json.data;
         },
         error: function (xhr, status, error) {
-          console.error("DataTable AJAX Error:", error);
-          showToast("Error loading orders data", "error");
+          console.error("DataTable AJAX Error:", {
+            status: xhr.status,
+            statusText: xhr.statusText,
+            responseText: xhr.responseText,
+            error: error,
+          });
+          showToast("Error loading orders data: " + error, "error");
         },
       },
       columns: [
         {
           data: "id",
+          name: "id",
           render: function (data, type, row) {
+            // For sorting, return full ID
+            if (type === "sort" || type === "type") {
+              return data || "";
+            }
             return (
-              '<span class="order-id">' + data.substring(0, 8) + "...</span>"
+              '<span class="order-id">' +
+              (data ? data.substring(0, 8) + "..." : "N/A") +
+              "</span>"
             );
           },
         },
         {
           data: "userName",
+          name: "userName",
           render: function (data, type, row) {
+            // For sorting, return just the name
+            if (type === "sort" || type === "type") {
+              return data || "";
+            }
             return `
-                        <div class="customer-info">
-                            <div class="customer-name">${data}</div>
-                            <div class="customer-email">${row.email}</div>
-                        </div>
-                    `;
+              <div class="customer-info">
+                  <div class="customer-name">${data || "N/A"}</div>
+                  <div class="customer-email">${row.email || "N/A"}</div>
+              </div>
+            `;
           },
         },
         {
           data: "address",
+          name: "address",
           render: function (data, type, row) {
+            // For sorting, return full address
+            if (type === "sort" || type === "type") {
+              return data || "";
+            }
             const shortAddress =
-              data.length > 30 ? data.substring(0, 30) + "..." : data;
-            return `<span title="${data}">${shortAddress}</span>`;
+              data && data.length > 30
+                ? data.substring(0, 30) + "..."
+                : data || "N/A";
+            return `<span title="${
+              data || "No address"
+            }">${shortAddress}</span>`;
           },
         },
         {
           data: "quantity",
+          name: "quantity",
           render: function (data, type, row) {
-            return `<span class="items-badge">${data} item(s)</span>`;
+            // For sorting, return numeric value
+            if (type === "sort" || type === "type") {
+              return parseInt(data) || 0;
+            }
+            return `<span class="items-badge">${data || 0} item(s)</span>`;
           },
         },
         {
           data: "totalAmount",
+          name: "totalAmount",
           render: function (data, type, row) {
+            // For sorting, return numeric value
+            if (type === "sort" || type === "type") {
+              return parseFloat(data) || 0;
+            }
             return (
               '<span class="amount-cell">₹' +
-              parseFloat(data).toFixed(2) +
+              parseFloat(data || 0).toFixed(2) +
               "</span>"
             );
           },
         },
         {
           data: "status",
+          name: "status",
           render: function (data, type, row) {
-            const statusClass = "status-" + data.toLowerCase();
-            return `<span class="badge status-badge ${statusClass}">${data}</span>`;
+            // For sorting, return status as-is
+            if (type === "sort" || type === "type") {
+              return data || "";
+            }
+            const statusClass = "status-" + (data || "pending").toLowerCase();
+            return `<span class="badge status-badge ${statusClass}">${
+              data || "Pending"
+            }</span>`;
           },
         },
         {
           data: "date",
+          name: "date",
           render: function (data, type, row) {
-            const date = new Date(data);
-            return (
-              date.toLocaleDateString() +
-              "<br><small>" +
-              date.toLocaleTimeString() +
-              "</small>"
-            );
+            // For sorting, return ISO date string or timestamp
+            if (type === "sort" || type === "type") {
+              return new Date(data).getTime() || 0;
+            }
+
+            if (!data) return "N/A";
+
+            try {
+              const date = new Date(data);
+              return (
+                date.toLocaleDateString() +
+                "<br><small>" +
+                date.toLocaleTimeString() +
+                "</small>"
+              );
+            } catch (e) {
+              return "Invalid Date";
+            }
           },
         },
         {
           data: null,
+          name: "actions",
           orderable: false,
           searchable: false,
           render: function (data, type, row) {
             return `
-                        <div class="action-buttons">
-                            <button class="btn btn-info btn-sm view-order" data-id="${row.id}" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm update-status" data-id="${row.id}" data-status="${row.status}" title="Update Status">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                           
-                        </div>
-                    `;
+              <div class="action-buttons">
+                  <button class="btn btn-info btn-sm view-order" data-id="${row.id}" title="View Details">
+                      <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn btn-warning btn-sm update-status" data-id="${row.id}" data-status="${row.status}" title="Update Status">
+                      <i class="fas fa-edit"></i>
+                  </button>
+              </div>
+            `;
           },
         },
       ],
-
-      // <button class="btn btn-success btn-sm print-order" data-id="${row.id}" title="Print Order">
-      //                         <i class="fas fa-print"></i>
-      //                     </button>
       order: [[6, "desc"]], // Sort by date (newest first)
       pageLength: 10,
       lengthMenu: [
@@ -388,8 +450,9 @@
       },
     });
 
-    // Status filter change
+    // Status filter change - reload table when status filter changes
     $("#statusFilter").on("change", function () {
+      console.log("Status filter changed to:", $(this).val());
       ordersTable.ajax.reload();
     });
 
@@ -406,19 +469,19 @@
 
       $("#orderModalTitle").text("Order Details - #" + orderId.substring(0, 8));
       $("#orderModalBody").html(`
-            <div class="text-center">
-                <div class="spinner-border" role="status">
-                    <span class="sr-only">Loading...</span>
-                </div>
-                <p>Loading order details...</p>
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
             </div>
-        `);
+            <p>Loading order details...</p>
+        </div>
+      `);
       $("#updateStatusBtn").data("id", orderId);
       $("#orderModal").modal("show");
 
       // Load order details
       $.ajax({
-        url: `/api/orders/${orderId}`,
+        url: `/api/product/order/${orderId}`,
         type: "GET",
         success: function (response) {
           const order = response.data;
@@ -426,10 +489,10 @@
         },
         error: function (xhr, status, error) {
           $("#orderModalBody").html(`
-                    <div class="alert alert-danger">
-                        <strong>Error:</strong> Could not load order details.
-                    </div>
-                `);
+            <div class="alert alert-danger">
+                <strong>Error:</strong> Could not load order details.
+            </div>
+          `);
         },
       });
     });
@@ -437,62 +500,71 @@
     // Display order details in modal
     function displayOrderDetails(order) {
       let productsHtml = "";
+      console.log(order);
 
-      order.products.forEach((product) => {
-        productsHtml += `
-                <div class="product-details">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <strong>Product ID:</strong> ${product.ProductId}<br>
-                            <strong>Quantity:</strong> ${product.quantity}
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Price:</strong> ₹${product.price}<br>
-                            <strong>Total:</strong> ₹${product.total}
-                        </div>
+      if (order.Products && order.Products.length > 0) {
+        order.Products.forEach((product) => {
+          productsHtml += `
+            <div class="product-details">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Product ID:</strong> ${
+                          product.ProductId || "N/A"
+                        }<br>
+                        <strong>Quantity:</strong> ${product.quantity || 0}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Price:</strong> ₹${product.price || "0.00"}<br>
+                        <strong>Total:</strong> ₹${product.total || "0.00"}
                     </div>
                 </div>
-            `;
-      });
+            </div>
+          `;
+        });
+      } else {
+        productsHtml = "<p>No products found for this order.</p>";
+      }
 
-      const statusClass = "status-" + order.status.toLowerCase();
+      const statusClass = "status-" + (order.status || "pending").toLowerCase();
 
       $("#orderModalBody").html(`
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Customer Information</h5>
-                    <p><strong>Name:</strong> ${order.userName}</p>
-                    <p><strong>Email:</strong> ${order.email}</p>
-                    <p><strong>Address:</strong> ${order.address}</p>
-                </div>
-                <div class="col-md-6">
-                    <h5>Order Information</h5>
-                    <p><strong>Order ID:</strong> <span class="order-id">${
-                      order.id
-                    }</span></p>
-                    <p><strong>Status:</strong> <span class="badge status-badge ${statusClass}">${order.status}</span></p>
-                    <p><strong>Date:</strong> ${new Date(
-                      order.date
-                    ).toLocaleString()}</p>
-                    <p><strong>Total Items:</strong> ${order.quantity}</p>
-                </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Customer Information</h5>
+                <p><strong>Name:</strong> ${order.userId?.fullName || "N/A"}</p>
+                <p><strong>Email:</strong> ${order.userId?.email || "N/A"}</p>
+                <p><strong>Address:</strong> ${order.address || "N/A"}</p>
             </div>
-            <hr>
-            <h5>Products Ordered</h5>
-            ${productsHtml}
-            <div class="row mt-3">
-                <div class="col-md-6 offset-md-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Order Summary</h5>
-                            <p class="card-text">
-                                <strong>Subtotal: ₹${order.totalAmount}</strong>
-                            </p>
-                        </div>
+            <div class="col-md-6">
+                <h5>Order Information</h5>
+                <p><strong>Order ID:</strong> <span class="order-id">${
+                  order._id || "N/A"
+                }</span></p>
+                <p><strong>Status:</strong> <span class="badge status-badge ${statusClass}">${order.status || "Pending"}</span></p>
+                <p><strong>Date:</strong> ${
+                  order.date ? new Date(order.date).toLocaleString() : "N/A"
+                }</p>
+                <p><strong>Total Items:</strong> ${order.totalItems || 0}</p>
+            </div>
+        </div>
+        <hr>
+        <h5>Products Ordered</h5>
+        ${productsHtml}
+        <div class="row mt-3">
+            <div class="col-md-6 offset-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Order Summary</h5>
+                        <p class="card-text">
+                            <strong>Subtotal: ₹${
+                              order.subtotal || "0.00"
+                            }</strong>
+                        </p>
                     </div>
                 </div>
             </div>
-        `);
+        </div>
+      `);
     }
 
     // Update status button click
@@ -532,12 +604,217 @@
         );
 
       $.ajax({
-        url: `/api/orders/${orderId}/status`,
+        url: `/api/product/order/${orderId}/status`,
         type: "PATCH",
-        data: {
+        contentType: "application/json",
+        data: JSON.stringify({
           status: newStatus,
           note: note,
+        }),
+        success: function (response) {
+          $("#statusModal").modal("hide");
+          $("#orderModal").modal("hide");
+          ordersTable.ajax.reload();
+          showToast(
+            response.message || "Order status updated successfully",
+            "success"
+          );
         },
+        error: function (xhr, status, error) {
+          console.error("Update Error:", error);
+          showToast("Failed to update order status", "error");
+        },
+        complete: function () {
+          button.prop("disabled", false).text("Update Status");
+        },
+      });
+    });
+
+    // Print order
+    $(document).on("click", ".print-order", function () {
+      const orderId = $(this).data("id");
+      window.open(`/admin/orders/${orderId}/print`, "_blank");
+    });
+
+    // Toast notification function
+    function showToast(message, type = "info") {
+      if (typeof Swal !== "undefined") {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
+        });
+
+        Toast.fire({
+          icon: type,
+          title: message,
+        });
+      } else {
+        alert(message);
+      }
+    }
+
+    window.showToast = showToast;
+    $("[title]").tooltip();
+
+    // Status filter change
+    $("#statusFilter").on("change", function () {
+      ordersTable.ajax.reload();
+    });
+
+    // Refresh table button
+    $("#refreshTable").on("click", function () {
+      ordersTable.ajax.reload(null, false);
+      showToast("Orders table refreshed", "success");
+    });
+
+    // View order details
+    $(document).on("click", ".view-order", function () {
+      const orderId = $(this).data("id");
+      currentOrderId = orderId;
+
+      $("#orderModalTitle").text("Order Details - #" + orderId.substring(0, 8));
+      $("#orderModalBody").html(`
+              <div class="text-center">
+                  <div class="spinner-border" role="status">
+                      <span class="sr-only">Loading...</span>
+                  </div>
+                  <p>Loading order details...</p>
+              </div>
+          `);
+      $("#updateStatusBtn").data("id", orderId);
+      $("#orderModal").modal("show");
+
+      // Load order details
+      $.ajax({
+        url: `/api/product/order/${orderId}`,
+        type: "GET",
+        success: function (response) {
+          const order = response.data;
+          displayOrderDetails(order);
+        },
+        error: function (xhr, status, error) {
+          $("#orderModalBody").html(`
+                      <div class="alert alert-danger">
+                          <strong>Error:</strong> Could not load order details.
+                      </div>
+                  `);
+        },
+      });
+    });
+
+    // Display order details in modal
+    function displayOrderDetails(order) {
+      let productsHtml = "";
+      console.log(order);
+      order.Products.forEach((product) => {
+        productsHtml += `
+                  <div class="product-details">
+                      <div class="row">
+                          <div class="col-md-6">
+                              <strong>Product ID:</strong> ${product.ProductId}<br>
+                              <strong>Quantity:</strong> ${product.quantity}
+                          </div>
+                          <div class="col-md-6">
+                              <strong>Price:</strong> ₹${product.price}<br>
+                              <strong>Total:</strong> ₹${product.total}
+                          </div>
+                      </div>
+                  </div>
+              `;
+      });
+
+      const statusClass = "status-" + order.status.toLowerCase();
+
+      $("#orderModalBody").html(`
+              <div class="row">
+                  <div class="col-md-6">
+                      <h5>Customer Information</h5>
+                      <p><strong>Name:</strong> ${order.userId.fullName}</p>
+                      <p><strong>Email:</strong> ${order.userId.email}</p>
+                      <p><strong>Address:</strong> ${order.address}</p>
+                  </div>
+                  <div class="col-md-6">
+                      <h5>Order Information</h5>
+                      <p><strong>Order ID:</strong> <span class="order-id">${
+                        order._id
+                      }</span></p>
+                      <p><strong>Status:</strong> <span class="badge status-badge ${statusClass}">${order.status}</span></p>
+                      <p><strong>Date:</strong> ${new Date(
+                        order.date
+                      ).toLocaleString()}</p>
+                      <p><strong>Total Items:</strong> ${order.totalItems}</p>
+                  </div>
+              </div>
+              <hr>
+              <h5>Products Ordered</h5>
+              ${productsHtml}
+              <div class="row mt-3">
+                  <div class="col-md-6 offset-md-6">
+                      <div class="card">
+                          <div class="card-body">
+                              <h5 class="card-title">Order Summary</h5>
+                              <p class="card-text">
+                                  <strong>Subtotal: ₹${order.subtotal}</strong>
+                              </p>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          `);
+    }
+
+    // Update status button click
+    $("#updateStatusBtn").on("click", function () {
+      const orderId = $(this).data("id");
+      $("#statusModal").modal("show");
+      $("#confirmStatusUpdate").data("id", orderId);
+    });
+
+    // Update status modal
+    $(document).on("click", ".update-status", function () {
+      const orderId = $(this).data("id");
+      const currentStatus = $(this).data("status");
+
+      $("#newStatus").val(currentStatus);
+      $("#statusNote").val("");
+      $("#confirmStatusUpdate").data("id", orderId);
+      $("#statusModal").modal("show");
+    });
+
+    // Confirm status update
+    $("#confirmStatusUpdate").on("click", function () {
+      const orderId = $(this).data("id");
+      const newStatus = $("#newStatus").val();
+      const note = $("#statusNote").val();
+
+      if (!newStatus) {
+        showToast("Please select a status", "error");
+        return;
+      }
+
+      const button = $(this);
+      button
+        .prop("disabled", true)
+        .html(
+          '<span class="spinner-border spinner-border-sm"></span> Updating...'
+        );
+
+      $.ajax({
+        url: `/api/product/order/${orderId}/status`,
+        type: "PATCH",
+        contentType: "application/json",
+        data: JSON.stringify({
+          // Send data as a JSON string
+          status: newStatus,
+          note: note,
+        }),
         success: function (response) {
           $("#statusModal").modal("hide");
           $("#orderModal").modal("hide");

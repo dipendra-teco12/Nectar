@@ -1,5 +1,6 @@
-// product.Controller.js
+const Order = require("../Models/order.Model");
 const Category = require("../Models/category.Model");
+
 const FavouriteProduct = require("../Models/fevouriteProducts.Model");
 const Product = require("../Models/product.Model");
 const Cart = require("../Models/cart.Model");
@@ -7,16 +8,13 @@ const setProduct = async (req, res) => {
   try {
     const { productName, price, category, stock, description } = req.body;
 
-    // Validate required fields
     if (!productName || !price || !category || !description || !stock) {
       return res.status(400).json({ message: "All fields required" });
     }
 
-    // Handle image upload
     const imageUrl = req.file?.path || null;
     const imagePublicId = req.file?.filename || null;
 
-    // Create the product
     const product = await Product.create({
       productName,
       price,
@@ -24,6 +22,7 @@ const setProduct = async (req, res) => {
       description,
       image: imageUrl,
       imagePublicId,
+      category,
     });
 
     let category_data = await Category.findOne({ category });
@@ -55,11 +54,11 @@ const getProduct = async (req, res) => {
       return res.status(404).json({ message: "Product Not Found" });
     }
     const data = {
-      name: product.name,
+      productName: product.productName,
+      stock: product.stock,
       image: product.image,
       description: product.description,
       price: product.price,
-      category: product.category,
     };
     res.status(200).json({ message: "Product Successfully Fetched", data });
   } catch (error) {
@@ -81,14 +80,14 @@ const deleteProduct = async (req, res) => {
         .status(404)
         .json({ message: "Product NoT Found or Already Deleted" });
     }
-    const data = {
-      name: product.name,
-      image: product.image,
-      description: product.description,
-      price: product.price,
-      category: product.category,
-    };
-    res.status(200).json({ message: "Product Successfully Deleted", data });
+    const category = await Category.findOne({ category: product.category });
+    if (category) {
+      category.categoryProduct.pull(productId);
+    }
+
+    await category.save();
+
+    res.status(200).json({ message: "Product Successfully Deleted" });
   } catch (error) {
     console.error("Error While Deleting Product Details :", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -444,8 +443,6 @@ const addFavouritesToCart = async (req, res) => {
   }
 };
 
-const Order = require("../Models/order.Model");
-
 const createOrder = async (req, res) => {
   const userId = req.user._id;
   const { Products, address, location } = req.body;
@@ -487,6 +484,28 @@ const createOrder = async (req, res) => {
   }
 };
 
+const getOrderDetails = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    if (!orderId) {
+      return res.status(400).json({ message: "order Id required" });
+    }
+    const data = await Order.findById({ _id: orderId }, "-location")
+      .populate("userId", "fullName email")
+      .lean();
+    if (!data) {
+      return res.status(404).json({ message: "No Order Found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Order Details fetched sucessfully", data });
+  } catch (error) {
+    console.error("Error While getting order details :", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 const getOrders = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -526,6 +545,38 @@ const cancelOrder = async (req, res) => {
   }
 };
 
+const changeOrderStatus = async (req, res) => {
+  try {
+    const { status, note } = req.body;
+    const { orderId } = req.params;
+
+    if (!orderId) {
+      return res.status(400).json({ message: "Order ID is required" });
+    }
+
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
+    }
+
+    const order = await Order.findByIdAndUpdate(
+      { _id: orderId },
+      { status, note },
+      { new: true }
+    );
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.status(200).json({
+      message: "Order status updated successfully",
+      data: order,
+    });
+  } catch (error) {
+    console.error("Error while changing order status:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 const getAllCategory = async (req, res) => {
   try {
     const data = await Category.find({}, "category image categoryProduct");
@@ -560,6 +611,8 @@ module.exports = {
   updateItemInCart,
   addFavouritesToCart,
   createOrder,
+  getOrderDetails,
   getOrders,
   cancelOrder,
+  changeOrderStatus,
 };

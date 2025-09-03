@@ -38,6 +38,10 @@
       href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs4.min.css"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"
+    />
 
     <%- style %>
   </head>
@@ -273,6 +277,27 @@
 
       // Make showModal globally available
       window.showModal = showModal;
+
+      $(document).on("click", "#logoutBtn", function (e) {
+        e.preventDefault();
+
+        if (typeof showModal === "function") {
+          showModal({
+            title: "Logout Confirmation",
+            message: "Are you sure you want to logout?",
+            confirmText: "Logout",
+            onConfirm: () => {
+              console.log("Logout confirmed");
+              window.location.href = "/api/auth/logout";
+            },
+          });
+        } else {
+          // Fallback if modal function isn't available
+          if (confirm("Are you sure you want to logout?")) {
+            window.location.href = "/api/auth/logout";
+          }
+        }
+      });
     </script>
   </body>
 </html>

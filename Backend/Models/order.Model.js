@@ -31,7 +31,7 @@ const orderSchema = new mongoose.Schema({
   ],
   status: {
     type: String,
-    enum: ["Pending"],
+    enum: ["Pending", "Delivered", "Processing", "Cancelled", "Shipped"],
     default: "Pending",
   },
   date: {
@@ -57,6 +57,13 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  totalItems: {
+    type: Number,
+    default: 0,
+  },
+  note: {
+    type: String,
+  },
 });
 
 orderSchema.index({ location: "2dsphere" });
@@ -66,7 +73,9 @@ orderSchema.pre("save", function (next) {
     item.total = item.quantity * item.price;
   });
 
+  // Calculate totalItems and subtotal
   this.subtotal = this.Products.reduce((acc, item) => acc + item.total, 0);
+  this.totalItems = this.Products.reduce((acc, item) => acc + item.quantity, 0);
 
   next();
 });

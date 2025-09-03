@@ -32,8 +32,8 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // set to true if using HTTPS in production
-      maxAge: 1000 * 60 * 15, // session expires after 15 mins
+      secure: false,
+      maxAge: 1000 * 60 * 5, 
     },
   })
 );
@@ -54,10 +54,6 @@ app.use("/api/auth", authRoutes);
 app.use("/admin", adminRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/pay", paymentRoutes);
-
-app.use((req, res, next) => {
-  next(new Error("Not found"));
-});
 
 app.use((error, req, res, next) => {
   res.status(404).json({ error: "Path not found" });
