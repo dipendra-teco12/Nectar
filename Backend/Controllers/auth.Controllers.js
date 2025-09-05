@@ -42,10 +42,12 @@ const signUp = async (req, res) => {
       email: user.email,
       role: user.role,
     };
-    res.status(201).json({ message: "User Successfully Registered", data });
+    res
+      .status(201)
+      .json({ success: true, message: "User Successfully Registered", data });
   } catch (error) {
     console.error("Error while Registering User", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -99,10 +101,14 @@ const login = async (req, res) => {
       accessToken,
       refreshToken,
     };
-    res.status(200).json({ message: "User Successfully Logged in", data });
+    userExits.updatedAt = new Date();
+    await userExits.save();
+    res
+      .status(200)
+      .json({ success: true, message: "User Successfully Logged in", data });
   } catch (error) {
     console.error("Error While logging", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -133,7 +139,7 @@ const logout = async (req, res) => {
     return res.redirect("/");
   } catch (error) {
     console.error("Logout error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -237,10 +243,13 @@ const forgetPassword = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Reset password otp has been sent to your email" });
+      .json({
+        success: true,
+        message: "Reset password otp has been sent to your email",
+      });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -273,10 +282,10 @@ const verifyOtpForResetPass = async (req, res) => {
       maxAge: 5 * 60 * 1000,
     });
 
-    res.json({ message: "OTP verified", tempToken });
+    res.json({ success: true, message: "OTP verified", tempToken });
   } catch (error) {
     console.error("Error in verifying:", error);
-    return res.status(500).json({ message: "Internal server error" });
+     res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -294,10 +303,10 @@ const resetPassword = async (req, res) => {
     user.lastOTPSentAt = undefined;
     await user.save();
 
-    res.json({ message: "Password changed successfully" });
+    res.json({ success: true, message: "Password changed successfully" });
   } catch (error) {
     console.error("Error in resetPassword:", error);
-    return res.status(500).json({ message: "Internal server error" });
+     res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -327,13 +336,16 @@ const updateProfile = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({
-      message: "Profile updated",
-      user: { fullName: updated.fullName, email: updated.email },
-    });
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Profile updated",
+        user: { fullName: updated.fullName, email: updated.email },
+      });
   } catch (err) {
     console.error("Error while updating user", err);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 module.exports = {

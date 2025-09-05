@@ -31,7 +31,7 @@ router.post("/add", authenticateToken, upload.single("image"), setProduct);
 router.get("/search", authenticateToken, searchProductsByName);
 router.get("/details/:productId", authenticateToken, getProduct);
 router.delete("/:productId", authenticateToken, deleteProduct);
-router.put(
+router.patch(
   "/update-product/:productId",
   authenticateToken,
   upload.single("image"),

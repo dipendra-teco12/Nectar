@@ -1,0 +1,526 @@
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <!-- left column -->
+      <div class="col-md-12">
+        <!-- jquery validation -->
+        <div class="card card-primary">
+          <div class="card-header">
+            <h3 class="card-title">Edit Product Details <small></small></h3>
+          </div>
+          <!-- /.card-header -->
+          <!-- form start -->
+          <form id="quickForm" enctype="multipart/form-data">
+            <!-- Hidden field for product ID -->
+            <input type="hidden" id="productId" name="productId" value="" />
+
+            <div class="card-body">
+              <!-- Loading indicator for prefilling data -->
+              <div
+                id="loadingIndicator"
+                class="text-center"
+                style="display: none"
+              >
+                <div class="spinner-border text-primary" role="status">
+                  <span class="sr-only">Loading product data...</span>
+                </div>
+                <p>Loading product details...</p>
+              </div>
+
+              <div id="formContent">
+                <div class="row">
+                  <div class="col-sm-6">
+                    <div class="form-group">
+                      <label for="productName"
+                        >Product Name <span style="color: red">*</span></label
+                      >
+                      <input
+                        type="text"
+                        name="productName"
+                        class="form-control"
+                        id="productName"
+                        placeholder="Enter product name.."
+                      />
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <div class="form-group">
+                      <label for="price"
+                        >Price <span style="color: red">*</span></label
+                      >
+                      <input
+                        type="number"
+                        name="price"
+                        class="form-control"
+                        id="price"
+                        placeholder="Enter product price .."
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-sm-6">
+                    <div class="form-group">
+                      <label for="stock"
+                        >Stock <span style="color: red">*</span></label
+                      >
+                      <input
+                        type="number"
+                        name="stock"
+                        class="form-control"
+                        id="stock"
+                        placeholder="Enter product stock"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <div class="form-group">
+                      <label
+                        >Categories <span style="color: red">*</span></label
+                      >
+                      <select
+                        class="form-control"
+                        id="genreSelect"
+                        name="category"
+                        required
+                      >
+                        <option value="">--Select--</option>
+                        <option value="Fresh Fruits & Vegetable">
+                          Fresh Fruits & Vegetable
+                        </option>
+                        <option value="Cooking Oil">Cooking Oil</option>
+                        <option value="Meat & Fish">Meat & Fish</option>
+                        <option value="Bakery & Snacks">Bakery & Snacks</option>
+                        <option value="Dairy & Eggs">Dairy & Eggs</option>
+                        <option value="Beverages">Beverages</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-sm-6">
+                    <div class="form-group">
+                      <label
+                        >Description <span style="color: red">*</span></label
+                      >
+                      <textarea
+                        class="form-control"
+                        rows="3"
+                        name="description"
+                        id="description"
+                        placeholder="Enter product description.."
+                      ></textarea>
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <div class="form-group">
+                      <label for="productImage">Product Image</label>
+                      <div class="custom-file">
+                        <input
+                          type="file"
+                          class="custom-file-input"
+                          id="productImage"
+                          name="image"
+                          accept="image/*"
+                        />
+                        <label class="custom-file-label" for="productImage"
+                          >Choose new image (optional)</label
+                        >
+                      </div>
+                      <!-- Current image preview -->
+                      <div id="currentImagePreview" style="margin-top: 10px">
+                        <label class="d-block">Current Image:</label>
+                        <img
+                          id="currentImg"
+                          src=""
+                          alt="Current Image"
+                          style="
+                            max-width: 200px;
+                            max-height: 200px;
+                            border-radius: 5px;
+                            border: 1px solid #ddd;
+                          "
+                        />
+                      </div>
+                      <!-- New image preview -->
+                      <div
+                        id="imagePreview"
+                        style="margin-top: 10px; display: none"
+                      >
+                        <label class="d-block">New Image Preview:</label>
+                        <img
+                          id="previewImg"
+                          src=""
+                          alt="Preview"
+                          style="
+                            max-width: 200px;
+                            max-height: 200px;
+                            border-radius: 5px;
+                            border: 1px solid #ddd;
+                          "
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer">
+              <button type="submit" class="btn btn-primary" id="submitBtn">
+                <span id="btnText">Update Product</span>
+                <span
+                  id="btnSpinner"
+                  class="spinner-border spinner-border-sm ml-2"
+                  style="display: none"
+                ></span>
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary ml-2"
+                onclick="history.back()"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+        <!-- /.card -->
+      </div>
+      <!--/.col (left) -->
+    </div>
+    <!-- /.row -->
+  </div>
+  <!-- /.container-fluid -->
+</section>
+
+<script>
+  $(function () {
+    // Wait for all libraries to load
+    setTimeout(function () {
+      console.log("Bootstrap loaded:", typeof $().modal !== "undefined");
+      console.log(
+        "Modal function available:",
+        typeof showModal !== "undefined"
+      );
+    }, 100);
+
+    // Get product ID from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId =
+      urlParams.get("id") || window.location.pathname.split("/").pop();
+
+    if (!productId) {
+      alert("Product ID is required");
+      history.back();
+      return;
+    }
+
+    $("#productId").val(productId);
+
+    // Load product data on page load
+    loadProductData(productId);
+
+    // File input label update
+    $(".custom-file-input").on("change", function () {
+      var fileName = $(this).val().split("\\").pop();
+      $(this)
+        .next(".custom-file-label")
+        .html(fileName || "Choose new image (optional)");
+
+      // Show new image preview
+      if (this.files && this.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          $("#previewImg").attr("src", e.target.result);
+          $("#imagePreview").show();
+        };
+        reader.readAsDataURL(this.files[0]);
+      } else {
+        $("#imagePreview").hide();
+      }
+    });
+
+    // Custom method to validate file size
+    $.validator.addMethod(
+      "filesize",
+      function (value, element, param) {
+        return (
+          this.optional(element) ||
+          (element.files[0] && element.files[0].size <= param)
+        );
+      },
+      "File must be less than 2 MB"
+    );
+
+    // Custom method to validate file extension
+    $.validator.addMethod(
+      "extension",
+      function (value, element, param) {
+        if (this.optional(element)) return true;
+        var ext = value.split(".").pop().toLowerCase();
+        return param.split("|").includes(ext);
+      },
+      "Please select a valid file format"
+    );
+
+    $("#quickForm").validate({
+      rules: {
+        productName: {
+          required: true,
+          minlength: 2,
+        },
+        price: {
+          required: true,
+          number: true,
+          min: 0.01,
+        },
+        stock: {
+          required: true,
+          digits: true,
+          min: 0,
+        },
+        category: {
+          required: true,
+        },
+        description: {
+          required: true,
+          minlength: 10,
+        },
+        image: {
+          required: false, // Not required for updates
+          extension: "jpg|jpeg|png|gif|webp",
+          filesize: 2 * 1024 * 1024, // 2MB limit
+        },
+      },
+      messages: {
+        productName: {
+          required: "Please enter the product name",
+          minlength: "Product name must be at least 2 characters",
+        },
+        price: {
+          required: "Please enter the product price",
+          number: "Please enter a valid number",
+          min: "Price must be at least Rs. 0.01",
+        },
+        stock: {
+          required: "Please enter stock quantity",
+          digits: "Stock must be a whole number",
+          min: "Stock cannot be negative",
+        },
+        category: {
+          required: "Please select a category",
+        },
+        description: {
+          required: "Please enter product description",
+          minlength: "Description must be at least 10 characters",
+        },
+        image: {
+          extension: "Only jpg, jpeg, png, gif, webp files are allowed",
+          filesize: "Image must be less than 2 MB",
+        },
+      },
+      errorElement: "span",
+      errorPlacement: function (error, element) {
+        error.addClass("invalid-feedback");
+        element.closest(".form-group").append(error);
+      },
+      highlight: function (element, errorClass, validClass) {
+        $(element).addClass("is-invalid");
+      },
+      unhighlight: function (element, errorClass, validClass) {
+        $(element).removeClass("is-invalid");
+      },
+      submitHandler: function (form) {
+        // Show confirmation modal with fallback
+        if (typeof showModal === "function") {
+          showModal({
+            title: "Confirm Update",
+            message: `<div class="text-center">
+                       <i class="fas fa-question-circle text-warning" style="font-size: 48px; margin-bottom: 10px;"></i>
+                       <p>Are you sure you want to update this product?</p>
+                     </div>`,
+            confirmText: "Yes, Update",
+            showCancel: true,
+            onConfirm: function () {
+              updateProduct(form);
+            },
+            onCancel: function () {
+              // Reset button state if user cancels
+              $("#submitBtn").prop("disabled", false);
+              $("#btnText").text("Update Product");
+              $("#btnSpinner").hide();
+            },
+          });
+        } else {
+          // Fallback to native confirm
+          if (confirm("Are you sure you want to update this product?")) {
+            updateProduct(form);
+          }
+        }
+      },
+    });
+
+    // Function to load product data
+    function loadProductData(productId) {
+      $("#loadingIndicator").show();
+      $("#formContent").hide();
+
+      $.ajax({
+        url: `/api/product/details/${productId}`,
+        type: "GET",
+        success: function (response) {
+          console.log("Product data loaded:", response);
+
+          if (response.data) {
+            const product = response.data;
+
+            // Fill form fields
+            $("#productName").val(product.productName || "");
+            $("#price").val(product.price || "");
+            $("#stock").val(product.stock || "");
+            $("#genreSelect").val(product.category || "");
+            $("#description").val(product.description || "");
+
+            // Show current image
+            if (product.image) {
+              $("#currentImg").attr("src", product.image);
+              $("#currentImagePreview").show();
+            } else {
+              $("#currentImagePreview").hide();
+            }
+
+            $("#loadingIndicator").hide();
+            $("#formContent").show();
+          } else {
+            throw new Error("No product data found");
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("Error loading product data:", error);
+          $("#loadingIndicator").hide();
+
+          const errorMessage =
+            xhr.responseJSON?.message || "Failed to load product data";
+
+          if (typeof showModal === "function") {
+            showModal({
+              title: "Error",
+              message: `<div class="text-center">
+                       <i class="fas fa-exclamation-triangle text-danger" style="font-size: 48px; margin-bottom: 10px;"></i>
+                       <p>${errorMessage}</p>
+                     </div>`,
+              confirmText: "Go Back",
+              showCancel: false,
+              onConfirm: function () {
+                history.back();
+              },
+            });
+          } else {
+            alert(errorMessage);
+            history.back();
+          }
+        },
+      });
+    }
+
+    // Function to update product
+    function updateProduct(form) {
+      const productId = $("#productId").val();
+      const formData = new FormData(form);
+
+      // Show loading state
+      $("#submitBtn").prop("disabled", true);
+      $("#btnText").text("Updating...");
+      $("#btnSpinner").show();
+
+      $.ajax({
+        url: `/api/product/update-product/${productId}`,
+        type: "PATCH",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (response) {
+          console.log("Product updated successfully:", response);
+
+          // Success modal with fallback
+          if (typeof showModal === "function") {
+            showModal({
+              title: "Success",
+              message: `<div class="text-center">
+                       <i class="fas fa-check-circle text-success" style="font-size: 48px; margin-bottom: 10px;"></i>
+                       <p>${
+                         response.message || "Product updated successfully!"
+                       }</p>
+                     </div>`,
+              confirmText: "OK",
+              showCancel: false,
+              onConfirm: function () {
+                // Redirect to products list
+                window.location.href = "/admin/products";
+              },
+            });
+          } else {
+            alert(response.message || "Product updated successfully!");
+            window.location.href = "/admin/products";
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("Update Error:", error);
+
+          let errorMessage = "Failed to update product. Please try again.";
+          if (xhr.responseJSON?.message) {
+            errorMessage = xhr.responseJSON.message;
+          }
+
+          // Error modal with fallback
+          if (typeof showModal === "function") {
+            showModal({
+              title: "Error",
+              message: `<div class="text-center">
+                       <i class="fas fa-exclamation-triangle text-danger" style="font-size: 48px; margin-bottom: 10px;"></i>
+                       <p>${errorMessage}</p>
+                     </div>`,
+              confirmText: "Try Again",
+              showCancel: false,
+            });
+          } else {
+            alert(errorMessage);
+          }
+        },
+        complete: function () {
+          // Reset button state
+          $("#submitBtn").prop("disabled", false);
+          $("#btnText").text("Update Product");
+          $("#btnSpinner").hide();
+        },
+      });
+    }
+
+    // Function for simple toast notifications (fallback)
+    function showToast(message, type = "info") {
+      if (typeof Swal !== "undefined") {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        });
+
+        Toast.fire({
+          icon: type,
+          title: message,
+        });
+      } else {
+        console.log(`${type.toUpperCase()}: ${message}`);
+      }
+    }
+
+    // Make functions globally available
+    window.showToast = showToast;
+  });
+</script>

@@ -33,7 +33,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: false,
-      maxAge: 1000 * 60 * 5, 
+      maxAge: 1000 * 60 * 5,
     },
   })
 );
@@ -44,14 +44,20 @@ const productRoutes = require("./Routes/product.Routes");
 const adminRoutes = require("./Routes/admin.Routes");
 app.get("/", (req, res) => {
   res.render("authViews/login", {
-    layout: false, // Don't use the admin layout for login page
+    layout: false,
   });
 });
 
+app.get("/register", (req, res) => {
+  res.render("authViews/signup", {
+    layout: false,
+  });
+});
+const userRoutes = require("./Routes/user.Routes");
+app.use("/admin", adminRoutes);
 app.use("/auth/google", oauthRoute);
 app.use("/api/auth", authRoutes);
-
-app.use("/admin", adminRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/pay", paymentRoutes);
 

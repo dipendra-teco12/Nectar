@@ -4,73 +4,6 @@ const Order = require("../Models/order.Model");
 const PrivacyPolicy = require("../Models/privacyPolicy.Model");
 const Category = require("../Models/category.Model");
 
-const getUserList = async (req, res) => {
-  try {
-    // Get pagination parameters from query string
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    // Get search parameter for DataTables
-    const searchValue = req.query.search?.value || "";
-
-    // Build search query
-    let searchQuery = {};
-    if (searchValue) {
-      searchQuery = {
-        $or: [
-          { fullName: { $regex: searchValue, $options: "i" } },
-          { email: { $regex: searchValue, $options: "i" } },
-          { role: { $regex: searchValue, $options: "i" } },
-        ],
-      };
-    }
-
-    // Get total count for pagination
-    const totalUsers = await User.countDocuments(searchQuery);
-
-    // Get users with pagination
-    const userData = await User.find(
-      searchQuery,
-      "fullName email role isDeleted createdAt"
-    )
-      .sort({ createdAt: -1 }) // Sort by newest first
-      .skip(skip)
-      .limit(limit);
-
-    if (!userData || userData.length === 0) {
-      return res.status(404).json({
-        message: "Users not found",
-        data: [],
-        recordsTotal: 0,
-        recordsFiltered: 0,
-      });
-    }
-
-    // Format data for DataTables
-    const formattedData = userData.map((user) => ({
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-      isActive: user.isDeleted ? "Inactive" : "Active",
-      status: user.isDeleted
-        ? '<span class="badge badge-danger">Inactive</span>'
-        : '<span class="badge badge-success">Active</span>',
-    }));
-
-    res.status(200).json({
-      message: "Users found successfully",
-      data: formattedData,
-      recordsTotal: totalUsers,
-      recordsFiltered: totalUsers, // For search functionality
-      draw: parseInt(req.query.draw) || 1, // For DataTables
-    });
-  } catch (error) {
-    console.error("Error While getting users", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
 const getAllProduct = async (req, res) => {
   try {
     // Get DataTables parameters
@@ -399,7 +332,7 @@ const getOrders = async (req, res) => {
 const privacy_policy = async (req, res) => {
   try {
     const policy = await PrivacyPolicy.findOne();
-    res.json({ policy: policy || { html: "" } });
+    res.json({ success: true, policy: policy || { html: "" } });
   } catch (error) {
     res.status(500).json({ message: "Error loading privacy policy" });
   }
@@ -410,7 +343,7 @@ const save_privacy = async (req, res) => {
     const { html } = req.body;
 
     await PrivacyPolicy.findOneAndUpdate({}, { html }, { upsert: true });
-    res.json({ message: "Privacy policy saved successfully" });
+    res.json({ success: true, message: "Privacy policy saved successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error saving privacy policy" });
   }
@@ -448,76 +381,47 @@ const dashboardCount = async (req, res) => {
     };
 
     res.status(200).json({
+      success: true,
       message: "Dashboard Count Fetched Successfully",
       data,
     });
   } catch (error) {
     console.error("Error While Getting Dashboard count:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
 // Recent Orders API
-const getRecentOrders = async (req, res) => {
-  try {
-    const recentOrders = await Order.find({})
-      .populate("userId", "fullName email")
-      .sort({ date: -1 })
-      .limit(5)
-      .lean();
+// const getRecentOrders = async (req, res) => {
+//   try {
+//     const recentOrders = await Order.find({})
+//       .populate("userId", "fullName email")
+//       .sort({ date: -1 })
+//       .limit(5)
+//       .lean();
 
-    const formattedOrders = recentOrders.map((order) => ({
-      id: order._id,
-      customerName: order.userId.fullName,
-      amount: order.subtotal,
-      status: order.status,
-      date: order.date,
-    }));
+//     const formattedOrders = recentOrders.map((order) => ({
+//       id: order._id,
+//       customerName: order.userId.fullName,
+//       amount: order.subtotal,
+//       status: order.status,
+//       date: order.date,
+//     }));
 
-    res.status(200).json({
-      message: "Recent orders fetched successfully",
-      data: formattedOrders,
-    });
-  } catch (error) {
-    console.error("Error fetching recent orders:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-const getSystemStatus = async (req, res) => {
-  try {
-    const data = {
-      database: {
-        status: "Connected",
-        percentage: 95,
-      },
-      server: {
-        status: "Running",
-        percentage: 78,
-      },
-      storage: {
-        status: "Normal",
-        percentage: 45,
-      },
-    };
-
-    res.status(200).json({
-      message: "System status fetched successfully",
-      data,
-    });
-  } catch (error) {
-    console.error("Error fetching system status:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
+//     res
+//       .status(200)
+//       .json({
+//         success: true,
+//         message: "Recent orders fetched successfully",
+//         data: formattedOrders,
+//       });
+//   } catch (error) {
+//     console.error("Error fetching recent orders:", error);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
 
 module.exports = {
-  dashboardCount,
-  getRecentOrders,
-  getSystemStatus,
-};
-module.exports = {
-  getUserList,
   getAllProduct,
   getOrders,
   privacy_policy,

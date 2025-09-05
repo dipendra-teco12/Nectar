@@ -59,6 +59,21 @@ router.get(
   }
 );
 
+router.get(
+  "/products/edit/:productId",
+  authenticateToken,
+  authorizeRoles("admin"),
+  (req, res) => {
+    res.render("pages/updateProduct", {
+      title: "Update Product",
+      pageTitle: "Update Product Details",
+      breadcrumb:
+        '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Product</li>',
+      user: req.user,
+    });
+  }
+);
+
 router.get("/users", authenticateToken, authorizeRoles("admin"), (req, res) => {
   res.render("pages/users", {
     title: "Profile - Admin Panel",
@@ -132,7 +147,6 @@ router.get(
 router.get("/privacy-policy", privacy_policy);
 router.post("/save-privacy", save_privacy);
 
-router.get("/userlist", authenticateToken, getUserList);
 router.get("/productlist", authenticateToken, getAllProduct);
 
 router.get("/orders/list", authenticateToken, getOrders);

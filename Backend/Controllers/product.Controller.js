@@ -38,7 +38,7 @@ const setProduct = async (req, res) => {
     });
   } catch (error) {
     console.error("Error while uploading product:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -59,11 +59,12 @@ const getProduct = async (req, res) => {
       image: product.image,
       description: product.description,
       price: product.price,
+      category: product.category,
     };
     res.status(200).json({ message: "Product Successfully Fetched", data });
   } catch (error) {
     console.error("Error While Getting Product Details :", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -90,7 +91,7 @@ const deleteProduct = async (req, res) => {
     res.status(200).json({ message: "Product Successfully Deleted" });
   } catch (error) {
     console.error("Error While Deleting Product Details :", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -124,7 +125,7 @@ const updateProduct = async (req, res) => {
     });
   } catch (error) {
     console.error("Error while updating product:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -161,7 +162,7 @@ const setFavouriteProduct = async (req, res) => {
     });
   } catch (error) {
     console.error("Error while adding product to favorites:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -194,7 +195,7 @@ const removeFromFavouriteProduct = async (req, res) => {
     });
   } catch (error) {
     console.error("Error while removing product from favorites:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -214,7 +215,7 @@ const getFavouriteProducts = async (req, res) => {
     res.status(200).json({ favourites: favProduct.productId });
   } catch (error) {
     console.error("Error while fetching favorite products:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -232,7 +233,7 @@ const getCategories = async (req, res) => {
     });
   } catch (error) {
     console.error("Error while getting categories of products :", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 const getCategoryProducts = async (req, res) => {
@@ -264,7 +265,7 @@ const getCategoryProducts = async (req, res) => {
     });
   } catch (error) {
     console.error("Error while getting category products :", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -289,7 +290,7 @@ const searchProductsByName = async (req, res) => {
     });
   } catch (error) {
     console.error("Error while searching product :", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -480,7 +481,7 @@ const createOrder = async (req, res) => {
     });
   } catch (error) {
     console.error("Error While Ordering Product :", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -503,7 +504,7 @@ const getOrderDetails = async (req, res) => {
       .json({ message: "Order Details fetched sucessfully", data });
   } catch (error) {
     console.error("Error While getting order details :", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 const getOrders = async (req, res) => {
@@ -522,7 +523,7 @@ const getOrders = async (req, res) => {
     res.status(200).json({ message: "Orders found sucessfully", orders });
   } catch (error) {
     console.error("Error While getting orders of user :", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -541,7 +542,7 @@ const cancelOrder = async (req, res) => {
     res.json(order);
   } catch (error) {
     console.error("Error while canceling order", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -573,7 +574,7 @@ const changeOrderStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("Error while changing order status:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 
@@ -591,7 +592,7 @@ const getAllCategory = async (req, res) => {
     });
   } catch (error) {
     console.error("Error while getting all category", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success:false, message: "Internal Server Error" });
   }
 };
 

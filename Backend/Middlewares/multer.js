@@ -9,7 +9,7 @@ const storage = new CloudinaryStorage({
     const folder = "Nectar/Product";
     return {
       folder,
-      allowed_formats: ["jpg", "jpeg", "png"],
+      allowed_formats: ["jpg", "jpeg", "png", "webp"],
       public_id: `${Date.now()}-${file.originalname.replace(/\s/g, "_")}`,
       resource_type: "auto",
     };
