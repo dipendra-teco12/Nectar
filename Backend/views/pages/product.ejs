@@ -175,8 +175,6 @@
       return;
     }
 
-    console.log("DataTables loaded successfully for products");
-
     // Initialize DataTable
     const productsTable = $("#productsTable").DataTable({
       processing: true,
@@ -185,8 +183,6 @@
         url: "/admin/productlist",
         type: "GET",
         data: function (d) {
-          console.log("DataTables parameters being sent:", d); // Debug log
-
           // Send parameters in the format your server expects
           const params = {
             draw: d.draw,
@@ -197,12 +193,9 @@
             order_dir: d.order[0]?.dir || "asc",
           };
 
-          console.log("Formatted parameters:", params); // Debug log
           return params;
         },
         dataSrc: function (json) {
-          console.log("Server response:", json); // Debug log
-
           // Check if response has the expected structure
           if (!json.data) {
             console.error("Invalid server response - missing data array");

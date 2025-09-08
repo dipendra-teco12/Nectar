@@ -107,17 +107,13 @@
 
 <script>
   $(document).ready(function () {
-    console.log("Initializing DataTables with working backend...");
-
-    const usersTable = $("#usersTable").DataTable({
+     const usersTable = $("#usersTable").DataTable({
       processing: true,
       serverSide: true,
       ajax: {
         url: "/api/users/userlist",
         type: "GET",
         data: function (d) {
-          console.log("DataTables original request:", d);
-
           // Send parameters in the simple format your backend expects
           const requestData = {
             draw: d.draw,
@@ -128,20 +124,14 @@
             "order[0][dir]": d.order[0] ? d.order[0].dir : "asc",
           };
 
-          console.log("Sending to backend:", requestData);
           return requestData;
         },
         dataSrc: function (json) {
-          console.log("DataTables received response:", json);
-
           // Check if we have data
           if (!json.data || !Array.isArray(json.data)) {
             console.error("No data array found in response");
             return [];
           }
-
-          console.log("Number of users:", json.data.length);
-          console.log("Sample user:", json.data[0]);
 
           // Return just the data array - DataTables will handle the rest
           return json.data;
@@ -250,7 +240,7 @@
     // Status filter change handler
     $("#statusFilter").on("change", function () {
       const filterValue = $(this).val();
-      console.log("Status filter changed to:", filterValue);
+
       usersTable.ajax.reload(); // Reload the table with new filter
 
       let message = "Showing all users";

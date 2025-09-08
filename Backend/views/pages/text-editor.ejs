@@ -45,8 +45,6 @@
 
 <script>
   $(document).ready(function () {
-    console.log("Initializing Summernote...");
-
     // Check if required libraries are loaded
     if (typeof $ === "undefined") {
       console.error("jQuery is not loaded!");
@@ -99,9 +97,7 @@
             response.data.policy.html
           ) {
             $("#summernote").summernote("code", response.data.policy.html);
-            console.log("Privacy policy loaded successfully");
           } else {
-            console.log("No existing privacy policy found");
             // Set default content
             $("#summernote").summernote(
               "code",

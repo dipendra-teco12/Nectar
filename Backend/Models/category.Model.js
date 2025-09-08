@@ -15,9 +15,9 @@ const categorySchema = new mongoose.Schema({
   image: {
     type: String,
     default:
-      "https://res.cloudinary.com/dfciwmday/image/upload/v1756786073/Nectar/Product/1756786071012-Screenshot_10.png.png",
+      "https://res.cloudinary.com/dfciwmday/image/upload/v1757315555/Nectar/Product/gc_nm1lsv.jpg",
   },
 });
 
-const Category = mongoose.model("Category", categorySchema);
+const Category = mongoose.model("Category", categorySchema); 
 module.exports = Category;

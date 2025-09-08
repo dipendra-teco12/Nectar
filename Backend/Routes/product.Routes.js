@@ -22,6 +22,10 @@ const {
   getAllCategory,
   getOrderDetails,
   changeOrderStatus,
+  bulkproducts,
+  getProductByCategoryId,
+  getProductByCategoryName,
+  datatabel,
 } = require("../Controllers/product.Controller");
 
 const upload = require("../Middlewares/multer");
@@ -69,5 +73,24 @@ router.post("/get-orders", authenticateToken, getOrders);
 router.put("/cancel-order", authenticateToken, cancelOrder);
 
 router.patch("/order/:orderId/status", authenticateToken, changeOrderStatus);
+
+router.post("/bulk", authenticateToken, bulkproducts);
+router.get("/categories", authenticateToken, getAllCategory);
+router.get(
+  "/categories/:categoryId/products",
+  authenticateToken,
+  getProductByCategoryId
+);
+router.get(
+  "/categories/name/:categoryName/products",
+  authenticateToken,
+  getProductByCategoryName
+);
+
+router.post(
+  "/categories/:categoryId/products/datatable",
+  authenticateToken,
+  datatabel
+);
 
 module.exports = router;

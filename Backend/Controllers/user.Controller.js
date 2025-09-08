@@ -69,8 +69,6 @@ const getUser = async (req, res) => {
 };
 const getUserList = async (req, res) => {
   try {
-    console.log("getUserList called with query:", req.query);
-
     // Parse DataTables parameters correctly
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -78,13 +76,10 @@ const getUserList = async (req, res) => {
 
     // Get search value - DataTables sends it as search[value]
     const searchValue = req.query["search[value]"] || "";
-    console.log("Search value:", searchValue);
 
     // Get sorting parameters - DataTables sends as order[0][column] and order[0][dir]
     const sortColumnIndex = parseInt(req.query["order[0][column]"]) || 0;
     const sortDirection = req.query["order[0][dir]"] || "asc";
-
-    console.log("Sort column:", sortColumnIndex, "Direction:", sortDirection);
 
     const columnMap = {
       0: "fullName",
@@ -97,7 +92,7 @@ const getUserList = async (req, res) => {
     const sortField = columnMap[sortColumnIndex] || "fullName";
     const sortOrder = sortDirection === "desc" ? -1 : 1;
 
-    console.log("Sorting by:", sortField, "Order:", sortOrder);
+
 
     // Build search query
     let searchQuery = {};
@@ -111,7 +106,6 @@ const getUserList = async (req, res) => {
       };
     }
 
-    console.log("Search query:", JSON.stringify(searchQuery));
 
     // Get counts
     const totalUsers = await User.countDocuments({});
@@ -125,7 +119,7 @@ const getUserList = async (req, res) => {
       sortObj = { createdAt: -1 };
     }
 
-    console.log("Sort object:", sortObj);
+
 
     // Get users
     const userData = await User.find(
@@ -136,16 +130,9 @@ const getUserList = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    console.log(`Found ${userData.length} users`);
+ 
 
-    if (userData.length > 0) {
-      console.log("Sample user data:", {
-        fullName: userData[0].fullName,
-        email: userData[0].email,
-        role: userData[0].role,
-        isDeleted: userData[0].isDeleted,
-      });
-    }
+ 
 
     // Format data - ensure all fields are strings/defined
     const formattedData = userData.map((user) => {
@@ -165,7 +152,7 @@ const getUserList = async (req, res) => {
       return formatted;
     });
 
-    console.log("Formatted first user:", formattedData[0]);
+  
 
     // DataTables expects specific structure
     const response = {
@@ -175,13 +162,7 @@ const getUserList = async (req, res) => {
       data: formattedData,
     };
 
-    console.log("Final response structure:", {
-      draw: response.draw,
-      recordsTotal: response.recordsTotal,
-      recordsFiltered: response.recordsFiltered,
-      dataLength: response.data.length,
-      firstUser: response.data[0] ? response.data[0].fullName : "none",
-    });
+ 
 
     res.json(response);
   } catch (error) {
