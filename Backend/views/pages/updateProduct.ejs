@@ -373,7 +373,7 @@
         url: `/api/product/details/${productId}`,
         type: "GET",
         success: function (response) {
-          console.log("Product data loaded:", response);
+          
 
           if (response.data) {
             const product = response.data;
@@ -444,8 +444,6 @@
         processData: false,
         contentType: false,
         success: function (response) {
-          console.log("Product updated successfully:", response);
-
           // Success modal with fallback
           if (typeof showModal === "function") {
             showModal({
@@ -459,10 +457,14 @@
               confirmText: "OK",
               showCancel: false,
               onConfirm: function () {
-                // Redirect to products list
-                window.location.href = "/admin/products";
+                form.reset();
+                $(".custom-file-label").html("Choose file");
+                $("#imagePreview").hide();
+                $("#quickForm").validate().resetForm();
+                $(".form-control").removeClass("is-invalid is-valid");
               },
             });
+            window.location.href = "/admin/products";
           } else {
             alert(response.message || "Product updated successfully!");
             window.location.href = "/admin/products";

@@ -170,7 +170,7 @@ const removeFromFavouriteProduct = async (req, res) => {
   try {
     const userId = req.user._id;
     const { productId } = req.params;
-    console.log(productId);
+
     if (!productId) {
       return res.status(400).json({ message: "Product ID is required" });
     }

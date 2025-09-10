@@ -76,7 +76,7 @@ router.get(
 
 router.get("/users", authenticateToken, authorizeRoles("admin"), (req, res) => {
   res.render("pages/users", {
-    title: "Profile - Admin Panel",
+    title: "Nectar Users",
     pageTitle: "User Details",
     breadcrumb:
       '<li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li><li class="breadcrumb-item active">Users</li>',

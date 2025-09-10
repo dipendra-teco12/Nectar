@@ -428,8 +428,9 @@
             }
           </td>
           <td>     <strong>${product.productName}</strong></td>
-          <td class="price-cell">$${(product.price || 0).toFixed(2)}</td>
+          <td class="price-cell">₹${(product.price || 0).toFixed(2)}</td>
           <td>
+            
 <span class="badge ${
   product.stock === 0
     ? "badge-danger"
@@ -503,7 +504,7 @@
       const productId = $(this).data("id");
       const productName = $(this).data("name");
 
-      console.log("Delete clicked for:", productId, productName);
+     
 
       $("#deleteProductName").text(productName || "Unknown Product");
       $("#confirmDelete").data("id", productId);
@@ -515,7 +516,7 @@
       const productId = $(this).data("id");
       const button = $(this);
 
-      console.log("Confirming delete for product:", productId);
+     
 
       if (!productId) {
         showToast("Product ID not found", "error");
@@ -607,7 +608,7 @@
             </div>
             <div class="col-md-8">
               <h5>${product.productName || "Unknown Product"}</h5>
-              <p><strong>Price:</strong> $${(product.price || 0).toFixed(2)}</p>
+              <p><strong>Price:</strong> ₹${(product.price || 0).toFixed(2)}</p>
               <p><strong>Stock:</strong> ${product.stock || 0}</p>
               <p><strong>Category:</strong> ${currentCategoryName}</p>
               <p><strong>Description:</strong> ${
