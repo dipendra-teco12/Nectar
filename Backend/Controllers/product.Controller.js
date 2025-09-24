@@ -105,7 +105,7 @@ const updateProduct = async (req, res) => {
     }
 
     const updatedData = {
-      product: req.body.productName || existingProduct.productName,
+      productName: req.body.productName || existingProduct.productName,
       price: req.body.price || existingProduct.price,
       category: req.body.category || existingProduct.category,
       stock: req.body.stock || existingProduct.stock,
@@ -208,7 +208,7 @@ const getFavouriteProducts = async (req, res) => {
       "-stock"
     );
 
-    if (!favProduct) {
+    if (favProduct.productId.length === 0) {
       return res.status(404).json({ message: "No favorite products found" });
     }
 
@@ -247,7 +247,7 @@ const getCategoryProducts = async (req, res) => {
 
     const category = await Category.findById(categoryId).populate(
       "categoryProduct",
-      "name image price description"
+      "productName image price description"
     );
 
     if (!category) {
@@ -283,7 +283,7 @@ const searchProductsByName = async (req, res) => {
 
     const products = await Product.find({
       productName: { $regex: `^${q}`, $options: "i" },
-    }).select("name image price description");
+    }).select("productName image price description");
 
     if (products.length === 0) {
       return res.status(404).json({ message: "Match not found" });
@@ -300,14 +300,15 @@ const searchProductsByName = async (req, res) => {
 
 const addItemsToTheCart = async (req, res) => {
   try {
+    const id = req.user._id;
     const { productId } = req.params;
-    const cart = await Cart.findOne({ userId: req.user._id });
+    const cart = await Cart.findOne({ userId: id });
 
     const product = await Product.findById(productId);
 
     if (!cart) {
       const newCart = await Cart.create({
-        userId: req.user._id,
+        userId: id,
         cartItems: [
           {
             productId: product._id,
@@ -472,7 +473,7 @@ const createOrder = async (req, res) => {
 
       if (product.stock < orderedProduct.quantity) {
         return res.status(400).json({
-          message: `Insufficient stock for product: ${product.name}`,
+          message: `Insufficient stock for product: ${product.productName}`,
         });
       }
 
@@ -614,7 +615,7 @@ const bulkproducts = async (req, res) => {
 
     const products = await Product.find({
       _id: { $in: productIds },
-    }).sort({ name: 1 });
+    }).sort({ productName: 1 });
 
     res.json({
       success: true,
@@ -633,7 +634,7 @@ const bulkproducts = async (req, res) => {
 const getAllCategory = async (req, res) => {
   try {
     const categories = await Category.find({})
-      .populate("categoryProduct", "name price image stock status")
+      .populate("categoryProduct", "productName price image stock status")
       .sort({ category: 1 });
 
     res.json({
@@ -658,11 +659,11 @@ const getProductByCategoryId = async (req, res) => {
 
     const category = await Category.findById(categoryId).populate({
       path: "categoryProduct",
-      match: search ? { name: { $regex: search, $options: "i" } } : {},
+      match: search ? { productName: { $regex: search, $options: "i" } } : {},
       options: {
         skip: (page - 1) * limit,
         limit: parseInt(limit),
-        sort: { name: 1 },
+        sort: { productName: 1 },
       },
     });
 
@@ -676,7 +677,7 @@ const getProductByCategoryId = async (req, res) => {
     // Get total count for pagination
     const totalProducts = await Product.countDocuments({
       _id: { $in: category.categoryProduct },
-      ...(search && { name: { $regex: search, $options: "i" } }),
+      ...(search && { productName: { $regex: search, $options: "i" } }),
     });
 
     res.json({
@@ -702,7 +703,7 @@ const getProductByCategoryId = async (req, res) => {
   }
 };
 
-// 3. Get products by category name
+// 3. Get products by category productName
 const getProductByCategoryName = async (req, res) => {
   try {
     const { categoryName } = req.params;
@@ -712,11 +713,11 @@ const getProductByCategoryName = async (req, res) => {
       category: { $regex: new RegExp(categoryName, "i") },
     }).populate({
       path: "categoryProduct",
-      match: search ? { name: { $regex: search, $options: "i" } } : {},
+      match: search ? { productName: { $regex: search, $options: "i" } } : {},
       options: {
         skip: (page - 1) * limit,
         limit: parseInt(limit),
-        sort: { name: 1 },
+        sort: { productName: 1 },
       },
     });
 
@@ -729,7 +730,7 @@ const getProductByCategoryName = async (req, res) => {
 
     const totalProducts = await Product.countDocuments({
       _id: { $in: category.categoryProduct },
-      ...(search && { name: { $regex: search, $options: "i" } }),
+      ...(search && { productName: { $regex: search, $options: "i" } }),
     });
 
     res.json({
@@ -756,7 +757,6 @@ const getProductByCategoryName = async (req, res) => {
   }
 };
 
-// 4. DataTable API endpoint (for server-side processing)
 const datatabel = async (req, res) => {
   try {
     const { categoryId } = req.params;
@@ -767,8 +767,8 @@ const datatabel = async (req, res) => {
     const sortDirection = order?.[0]?.dir || "asc";
 
     // Define columns for sorting
-    const columns = ["name", "price", "stock", "status", "createdAt"];
-    const sortField = columns[sortColumn] || "name";
+    const columns = ["productName", "price", "stock", "status", "createdAt"];
+    const sortField = columns[sortColumn] || "productName";
     const sortOrder = sortDirection === "desc" ? -1 : 1;
 
     const category = await Category.findById(categoryId);
@@ -787,7 +787,7 @@ const datatabel = async (req, res) => {
     };
 
     if (searchValue) {
-      matchQuery.name = { $regex: searchValue, $options: "i" };
+      matchQuery.productName = { $regex: searchValue, $options: "i" };
     }
 
     // Get total records
@@ -804,7 +804,7 @@ const datatabel = async (req, res) => {
 
     // Format data for DataTable
     const formattedData = products.map((product) => [
-      product.name,
+      product.productName,
       `$${product.price?.toFixed(2) || "0.00"}`,
       product.stock || 0,
       `<span class="badge badge-${

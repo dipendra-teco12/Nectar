@@ -3,7 +3,7 @@ require("./Config/oauth");
 
 const express = require("express");
 const app = express();
-
+const redis = require("redis");
 const connectDb = require("./Config/db");
 const path = require("path");
 const passport = require("passport");
@@ -42,6 +42,16 @@ app.use(
     },
   })
 );
+
+// const client = redis.createClient({
+//   url: "redis://localhost:6379", // Redis server URL
+// });
+
+// // Connect to Redis
+// client
+//   .connect()
+//   .then(() => console.log("Connected to Redis"))
+//   .catch((err) => console.error("Redis connection error:", err));
 
 app.get("/", (req, res) => {
   res.render("authViews/login", {
