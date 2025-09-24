@@ -105,7 +105,7 @@ const updateProduct = async (req, res) => {
     }
 
     const updatedData = {
-      name: req.body.name || existingProduct.name,
+      product: req.body.productName || existingProduct.productName,
       price: req.body.price || existingProduct.price,
       category: req.body.category || existingProduct.category,
       stock: req.body.stock || existingProduct.stock,
@@ -282,7 +282,7 @@ const searchProductsByName = async (req, res) => {
     }
 
     const products = await Product.find({
-      name: { $regex: `^${q}`, $options: "i" },
+      productName: { $regex: `^${q}`, $options: "i" },
     }).select("name image price description");
 
     if (products.length === 0) {
@@ -863,5 +863,6 @@ module.exports = {
   changeOrderStatus,
   getProductByCategoryId,
   getProductByCategoryName,
-  bulkproducts,datatabel
+  bulkproducts,
+  datatabel,
 };
