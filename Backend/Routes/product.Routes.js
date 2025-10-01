@@ -25,15 +25,18 @@ const {
   bulkproducts,
   getProductByCategoryId,
   getProductByCategoryName,
-  datatabel,
+
+  datatable,
+  getCart,
 } = require("../Controllers/product.Controller");
 
 const upload = require("../Middlewares/multer");
+const { route } = require("./oauth.Routes");
 
 router.post("/add", authenticateToken, upload.single("image"), setProduct);
 
-router.get("/search", authenticateToken, searchProductsByName);
-router.get("/details/:productId", authenticateToken, getProduct);
+router.get("/search", searchProductsByName);
+router.get("/details/:productId", getProduct);
 router.delete("/:productId", authenticateToken, deleteProduct);
 router.patch(
   "/update-product/:productId",
@@ -54,14 +57,14 @@ router.delete(
 );
 
 router.get("/favourite-product", authenticateToken, getFavouriteProducts);
-router.get("/category-list", authenticateToken, getAllCategory);
-router.get("/category/:categoryId", authenticateToken, getCategoryProducts);
+router.get("/category-list", getAllCategory);
+router.get("/category/:categoryId", getCategoryProducts);
 
 router.post("/add-item/:productId", authenticateToken, addItemsToTheCart);
 
-router.post("/remove-item/:productId", authenticateToken, removeItemFromCart);
+router.delete("/remove-item/:productId", authenticateToken, removeItemFromCart);
 
-router.put("/update-item", authenticateToken, updateItemInCart);
+router.patch("/update-item/:productId", authenticateToken, updateItemInCart);
 
 router.post("/add-favourite-to-cart", authenticateToken, addFavouritesToCart);
 
@@ -90,7 +93,8 @@ router.get(
 router.post(
   "/categories/:categoryId/products/datatable",
   authenticateToken,
-  datatabel
+  datatable
 );
 
+router.get("/cart", authenticateToken, getCart);
 module.exports = router;

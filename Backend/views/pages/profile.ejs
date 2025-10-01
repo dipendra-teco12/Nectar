@@ -1,162 +1,182 @@
 <style>
   .form-control {
-    height: 40px; /* Fixed height to avoid resizing */
+    height: 40px;
     padding: 10px;
-    box-sizing: border-box; /* To include padding in the height calculation */
+    box-sizing: border-box;
   }
 
   .text-danger {
     font-size: 0.875rem;
     color: #dc3545;
     margin-top: 5px;
-    min-height: 20px; /* Ensure error message space doesn't shrink or grow */
-    padding-left: 5px; /* Optional: for better alignment */
+    min-height: 20px;
+    padding-left: 5px;
   }
 
   .mb-3 {
     position: relative;
   }
 
-  /* Ensure the error message appears below the input */
   .text-danger {
     margin-top: 8px;
   }
 </style>
 
-<div class="card" id="updateProfileForm">
+<div class="card">
   <div class="card-body">
-    <form id="updateForm" novalidate>
-      <!-- Full Name and Email in one row -->
-      <div class="mb-3 row">
-        <div class="col-sm-6">
-          <label for="fullName">Full Name</label>
-          <input
-            type="text"
-            name="fullName"
-            id="fullName"
-            class="form-control"
-            value="<%= user.fullName || '' %>"
-            required
-            minlength="2"
-          />
-          <div class="text-danger mt-1" id="fullNameError"></div>
-        </div>
-
-        <div class="col-sm-6">
-          <label for="email">Email address</label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            class="form-control"
-            value="<%= user.email || '' %>"
-            required
-          />
-          <div class="text-danger mt-1" id="emailError"></div>
-        </div>
+    <div class="mb-3 row">
+      <div class="col-sm-6">
+        <label for="fullName">Full Name</label>
+        <input
+          type="text"
+          name="fullName"
+          id="fullName"
+          class="form-control"
+          value="<%= user.fullName || '' %>"
+          required
+          minlength="2"
+          disabled
+        />
+        <div class="text-danger mt-1" id="fullNameError"></div>
       </div>
 
-      <!-- Password and Confirm Password in one row -->
+      <div class="col-sm-6">
+        <label for="email">Email address</label>
+        <input
+          type="email"
+          name="email"
+          id="email"
+          class="form-control"
+          value="<%= user.email || '' %>"
+          required
+          disabled
+        />
+        <div class="text-danger mt-1" id="emailError"></div>
+      </div>
+    </div>
+
+    <button type="button" id="btnShowPasswordCard" class="btn btn-primary">
+      Change Password
+    </button>
+  </div>
+</div>
+
+<div class="card" id="passwordCard" style="display: none">
+  <div class="card-body">
+    <form id="passwordForm" novalidate>
       <div class="mb-3 row">
-        <div class="col-sm-6">
-          <label for="password">New Password</label>
+        <div class="col-sm-4">
+          <label for="currentPassword">Current Password</label>
           <input
             type="password"
-            name="password"
-            id="password"
+            name="currentPassword"
+            id="currentPassword"
             class="form-control"
+            required
             minlength="8"
           />
-          <div class="text-danger mt-1" id="passwordError"></div>
+          <div class="text-danger" id="currentPasswordError"></div>
         </div>
-
-        <div class="col-sm-6">
+        <div class="col-sm-4">
+          <label for="newPassword">New Password</label>
+          <input
+            type="password"
+            name="newPassword"
+            id="newPassword"
+            class="form-control"
+            required
+            minlength="8"
+          />
+          <div class="text-danger" id="newPasswordError"></div>
+        </div>
+        <div class="col-sm-4">
           <label for="confirmPassword">Confirm Password</label>
           <input
             type="password"
             name="confirmPassword"
             id="confirmPassword"
             class="form-control"
+            required
             minlength="8"
           />
-          <div class="text-danger mt-1" id="confirmPasswordError"></div>
+          <div class="text-danger" id="confirmPasswordError"></div>
         </div>
       </div>
-
-      <button type="submit" class="btn btn-primary">Update Profile</button>
+      <button type="submit" class="btn btn-primary">Update Password</button>
     </form>
   </div>
 </div>
-
 <script>
   $(document).ready(function () {
-    const setError = (id, msg) => $("#" + id + "Error").text(msg || "");
+    $("#btnShowPasswordCard").on("click", function () {
+      $(this).hide();
+      $("#passwordCard").slideDown();
+    });
 
-    function validateForm() {
+    const setError = (fldId, msg) => {
+      $("#" + fldId + "Error").text(msg || "");
+    };
+
+    function validatePasswordForm() {
       let valid = true;
-      setError("fullName", "");
-      setError("email", "");
-      setError("password", "");
+      setError("currentPassword", "");
+      setError("newPassword", "");
       setError("confirmPassword", "");
 
-      const name = $("#fullName").val().trim();
-      if (!name) {
-        setError("fullName", "Full name is required.");
+      const cur = $("#currentPassword").val().trim();
+      const nw = $("#newPassword").val().trim();
+      const cp = $("#confirmPassword").val().trim();
+
+      if (!cur) {
+        setError("currentPassword", "Old password is required.");
         valid = false;
-      } else if (name.length < 2 || name.length > 100) {
-        setError("fullName", "Name must be 2–100 characters.");
+      } else if (cur.length < 8) {
+        setError("currentPassword", "Password must be at least 8 characters.");
         valid = false;
       }
 
-      const email = $("#email").val().trim();
-      const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-      if (!email) {
-        setError("email", "Email is required.");
+      if (!nw) {
+        setError("newPassword", "New password is required.");
         valid = false;
-      } else if (!emailRegex.test(email)) {
-        setError("email", "Enter a valid email.");
+      } else if (nw.length < 8) {
+        setError("newPassword", "Password must be at least 8 characters.");
         valid = false;
       }
 
-      const pwd = $("#password").val();
-      const cpwd = $("#confirmPassword").val();
-      if (pwd || cpwd) {
-        if (pwd.length < 8) {
-          setError("password", "Password must be at least 8 characters.");
-          valid = false;
-        }
-        if (pwd !== cpwd) {
-          setError("confirmPassword", "Passwords do not match.");
-          valid = false;
-        }
+      if (!cp) {
+        setError("confirmPassword", "Please confirm password.");
+        valid = false;
+      } else if (cp !== nw) {
+        setError("confirmPassword", "Passwords do not match.");
+        valid = false;
       }
 
       return valid;
     }
 
-    $("#updateForm input").on("input change", function () {
+    $("#passwordForm input").on("input change", function () {
       setError(this.id, "");
     });
 
-    $("#updateForm").on("submit", function (e) {
+    $("#passwordForm").on("submit", function (e) {
       e.preventDefault();
-      if (!validateForm()) return;
+      if (!validatePasswordForm()) {
+        return;
+      }
 
-      // Ask for confirmation
       showModal({
-        title: "Update Profile",
-        message: "Are you sure you want to update your profile?",
-        confirmText: "Update",
+        title: "Update Password",
+        message: "Are you sure you want to change your password?",
+        confirmText: "Yes, Change",
         onConfirm: function () {
-          const submitBtn = $("#updateForm")
+          const btn = $("#passwordForm")
             .find("button[type='submit']")
             .prop("disabled", true)
             .text("Updating...");
 
           const data = {
-            fullName: $("#fullName").val().trim(),
-            email: $("#email").val().trim(),
-            password: $("#password").val(),
+            currentPassword: $("#currentPassword").val(),
+            newPassword: $("#newPassword").val(),
             confirmPassword: $("#confirmPassword").val(),
           };
 
@@ -165,21 +185,19 @@
             type: "PATCH",
             contentType: "application/json",
             data: JSON.stringify(data),
-            success: function (response) {
+            success: function (res) {
               showModal({
                 title: "Success",
-                message: response.message || "Profile updated successfully!",
+                message: res.message || "Password changed successfully",
                 confirmText: "OK",
               });
               setTimeout(() => location.reload(), 150);
             },
-            error: function (xhr, status, error) {
-              console.error("Error:", error);
-
+            error: function (xhr) {
               if (
                 xhr.status === 422 &&
                 xhr.responseJSON &&
-                xhr.responseJSON.error
+                Array.isArray(xhr.responseJSON.error)
               ) {
                 xhr.responseJSON.error.forEach((errObj) => {
                   setError(errObj.name, errObj.message);
@@ -187,15 +205,13 @@
               } else {
                 showModal({
                   title: "Error",
-                  message:
-                    xhr.responseJSON?.message ||
-                    "Update failed. Please try again.",
+                  message: xhr.responseJSON?.message || "Operation failed",
                   confirmText: "Close",
                 });
               }
             },
             complete: function () {
-              submitBtn.prop("disabled", false).text("Update Profile");
+              btn.prop("disabled", false).text("Update Password");
             },
           });
         },

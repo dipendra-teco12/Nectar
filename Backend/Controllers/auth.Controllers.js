@@ -9,7 +9,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authTokin = process.env.TWILIO_AUTH_TOKIN;
 const client = new twilio(accountSid, authTokin);
 const jwt = require("jsonwebtoken");
-
+const { sendPasswordResetEmail } = require("../Utilities/emailService");
 const {
   generateAccessToken,
   generateRefreshToken,
@@ -47,7 +47,7 @@ const signUp = async (req, res) => {
       .json({ success: true, message: "User Successfully Registered", data });
   } catch (error) {
     console.error("Error while Registering User", error);
-    res.status(500).json({success:false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -108,7 +108,7 @@ const login = async (req, res) => {
       .json({ success: true, message: "User Successfully Logged in", data });
   } catch (error) {
     console.error("Error While logging", error);
-    res.status(500).json({success:false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -139,7 +139,7 @@ const logout = async (req, res) => {
     return res.redirect("/");
   } catch (error) {
     console.error("Logout error:", error);
-    res.status(500).json({success:false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -159,7 +159,7 @@ const sentOtp = async (req, res) => {
     to: phone,
   });
 
-  res.status(200).json({ message: "OTP sent" });
+  res.status(200).json({ success: true, message: "OTP sent" });
 };
 
 const verifyOtp = async (req, res) => {
@@ -169,7 +169,9 @@ const verifyOtp = async (req, res) => {
   });
 
   if (!record)
-    return res.status(400).json({ message: "OTP not found or used" });
+    return res
+      .status(400)
+      .json({ success: false, message: "OTP not found or used" });
 
   if (record.attempts >= 5) {
     return res.status(429).json({ message: "Too many attempts" });
@@ -185,7 +187,7 @@ const verifyOtp = async (req, res) => {
 
   record.used = true;
   await record.save();
-  res.status(200).json({ message: "OTP verified successfully" });
+  res.status(200).json({ success: true, message: "OTP verified successfully" });
 };
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -225,15 +227,7 @@ const forgetPassword = async (req, res) => {
 
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "OTP for password reset",
-      html: `
-        <p>if you don't want to reset password please ignore !</p>
-        <p>Here is the otp for resetting password :- <h3>${otp}</h3></p>
-      `,
-    });
+    await sendPasswordResetEmail(email, otp);
 
     user.resetOtp = otp;
     user.resetOtpExpiry = Date.now() + 10 * 60 * 1000;
@@ -241,15 +235,13 @@ const forgetPassword = async (req, res) => {
     user.otpAttemptCount += 1;
     await user.save();
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Reset password otp has been sent to your email",
-      });
+    res.status(200).json({
+      success: true,
+      message: "Reset password otp has been sent to your email",
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({success:false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -285,7 +277,7 @@ const verifyOtpForResetPass = async (req, res) => {
     res.json({ success: true, message: "OTP verified", tempToken });
   } catch (error) {
     console.error("Error in verifying:", error);
-     res.status(500).json({success:false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -306,29 +298,52 @@ const resetPassword = async (req, res) => {
     res.json({ success: true, message: "Password changed successfully" });
   } catch (error) {
     console.error("Error in resetPassword:", error);
-     res.status(500).json({success:false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
 const updateProfile = async (req, res) => {
   try {
     const updateFields = {};
-    const { fullName, email, password } = req.body;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
 
-    if (fullName) updateFields.fullName = fullName;
-    if (email) updateFields.email = email;
-    if (password) {
-      updateFields.password = await bcrypt.hash(password, 10);
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    if (newPassword) {
+      if (!currentPassword) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Current password is required" });
+      }
+
+      if (newPassword !== confirmPassword) {
+        return res
+          .status(422)
+          .json({ success: false, message: "Passwords do not match" });
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Current password is incorrect" });
+      }
+
+      updateFields.password = await bcrypt.hash(newPassword, 10);
     }
 
     const updated = await User.findByIdAndUpdate(
-      { _id: req.user._id },
+      req.user._id,
       { $set: updateFields },
       { new: true }
     );
 
     const accessToken = generateAccessToken(updated);
-
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: false,
@@ -336,18 +351,16 @@ const updateProfile = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Profile updated",
-        user: { fullName: updated.fullName, email: updated.email },
-      });
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
+    });
   } catch (err) {
     console.error("Error while updating user", err);
-    res.status(500).json({success:false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 module.exports = {
   signUp,
   login,

@@ -24,6 +24,7 @@ router.get(
   async (req, res) => {
     const user = {
       _id: req.user._id,
+      fullName: req.user.fullName,
       email: req.user.email,
       role: req.user.role,
     };

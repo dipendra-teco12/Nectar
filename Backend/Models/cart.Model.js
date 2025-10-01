@@ -7,6 +7,9 @@ const ItemSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
     },
+    image: {
+      type: String,
+    },
     quantity: {
       type: Number,
       required: true,

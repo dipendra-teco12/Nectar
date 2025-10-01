@@ -1,6 +1,6 @@
 const Order = require("../Models/order.Model");
 const Category = require("../Models/category.Model");
-
+const mongoose = require("mongoose");
 const FavouriteProduct = require("../Models/fevouriteProducts.Model");
 const Product = require("../Models/product.Model");
 const Cart = require("../Models/cart.Model");
@@ -33,6 +33,7 @@ const setProduct = async (req, res) => {
     await category_data.save();
 
     res.status(201).json({
+      success: true,
       message: "Product successfully uploaded",
       product,
     });
@@ -45,6 +46,12 @@ const setProduct = async (req, res) => {
 const getProduct = async (req, res) => {
   try {
     const { productId } = req.params;
+    if (!productId) {
+      return res.status(400).json({ error: "productId is required" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ error: "Invalid productId" });
+    }
     if (!productId) {
       return res.status(400).json({ message: "productId is required" });
     }
@@ -61,7 +68,9 @@ const getProduct = async (req, res) => {
       price: product.price,
       category: product.category,
     };
-    res.status(200).json({ message: "Product Successfully Fetched", data });
+    res
+      .status(200)
+      .json({ success: true, message: "Product Successfully Fetched", data });
   } catch (error) {
     console.error("Error While Getting Product Details :", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -72,14 +81,23 @@ const deleteProduct = async (req, res) => {
   try {
     const { productId } = req.params;
     if (!productId) {
-      return res.status(400).json({ message: "productId is required" });
+      return res.status(400).json({ error: "productId is required" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ error: "Invalid productId" });
+    }
+    if (!productId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "productId is required" });
     }
 
     const product = await Product.findByIdAndDelete({ _id: productId });
     if (!product) {
-      return res
-        .status(404)
-        .json({ message: "Product NoT Found or Already Deleted" });
+      return res.status(404).json({
+        success: false,
+        message: "Product NoT Found or Already Deleted",
+      });
     }
     const category = await Category.findOne({ category: product.category });
     if (category) {
@@ -88,7 +106,9 @@ const deleteProduct = async (req, res) => {
 
     await category.save();
 
-    res.status(200).json({ message: "Product Successfully Deleted" });
+    res
+      .status(200)
+      .json({ success: true, message: "Product Successfully Deleted" });
   } catch (error) {
     console.error("Error While Deleting Product Details :", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -135,7 +155,10 @@ const setFavouriteProduct = async (req, res) => {
     const { productId } = req.params;
 
     if (!productId) {
-      return res.status(400).json({ message: "Product ID is required" });
+      return res.status(400).json({ error: "productId is required" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ error: "Invalid productId" });
     }
 
     let favProduct = await FavouriteProduct.findOne({ userId });
@@ -156,7 +179,8 @@ const setFavouriteProduct = async (req, res) => {
       });
     }
 
-    res.status(201).json({
+    res.status(200).json({
+      success: true,
       message: "Product added to favorites",
       favourites: favProduct,
     });
@@ -172,9 +196,11 @@ const removeFromFavouriteProduct = async (req, res) => {
     const { productId } = req.params;
 
     if (!productId) {
-      return res.status(400).json({ message: "Product ID is required" });
+      return res.status(400).json({ error: "productId is required" });
     }
-
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ error: "Invalid productId" });
+    }
     const favProduct = await FavouriteProduct.findOne({ userId });
 
     if (!favProduct || !favProduct.productId.includes(productId)) {
@@ -190,6 +216,7 @@ const removeFromFavouriteProduct = async (req, res) => {
     await favProduct.save();
 
     res.status(200).json({
+      success: true,
       message: "Product removed from favorites",
       favourites: favProduct,
     });
@@ -212,7 +239,11 @@ const getFavouriteProducts = async (req, res) => {
       return res.status(404).json({ message: "No favorite products found" });
     }
 
-    res.status(200).json({ favourites: favProduct.productId });
+    res.status(200).json({
+      success: true,
+      message: "Favourite product fetched successfully",
+      favourites: favProduct.productId,
+    });
   } catch (error) {
     console.error("Error while fetching favorite products:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -251,7 +282,9 @@ const getCategoryProducts = async (req, res) => {
     );
 
     if (!category) {
-      return res.status(404).json({ message: "Category not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Category not found" });
     }
 
     if (!category.categoryProduct || category.categoryProduct.length === 0) {
@@ -262,7 +295,8 @@ const getCategoryProducts = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: `In ${category.categoryName} category products fetched successfully`,
+      success: true,
+      message: `In ${category.category} category products fetched successfully`,
       products: category.categoryProduct,
     });
   } catch (error) {
@@ -302,26 +336,36 @@ const addItemsToTheCart = async (req, res) => {
   try {
     const id = req.user._id;
     const { productId } = req.params;
-    const cart = await Cart.findOne({ userId: id });
-
+    if (!productId) {
+      return res.status(400).json({ error: "productId is required" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ error: "Invalid productId" });
+    }
     const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    let cart = await Cart.findOne({ userId: id });
 
     if (!cart) {
-      const newCart = await Cart.create({
+      cart = await Cart.create({
         userId: id,
         cartItems: [
           {
             productId: product._id,
+            image: product.image,
             quantity: 1,
             price: product.price,
-            total: product.price * 1,
+            total: product.price,
           },
         ],
         subTotal: product.price,
       });
       return res
-        .status(201)
-        .json({ message: "Item added successfully to the cart", newCart });
+        .status(200)
+        .json({ message: "Item added successfully to the cart", cart });
     }
 
     const existingItem = cart.cartItems.find(
@@ -335,50 +379,66 @@ const addItemsToTheCart = async (req, res) => {
 
     cart.cartItems.push({
       productId: product._id,
+      image: product.image,
       quantity: 1,
       price: product.price,
-      total: product.price * 1,
+      total: product.price,
     });
 
     cart.subTotal = cart.cartItems.reduce((sum, item) => sum + item.total, 0);
     await cart.save();
-    res
-      .status(201)
-      .json({ message: "Item added successfully to the cart", cart });
+
+    res.status(200).json({
+      success: true,
+      message: "Item added successfully to the cart",
+      cart,
+    });
   } catch (error) {
     console.error("Error while adding item to the cart :", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 const removeItemFromCart = async (req, res) => {
   const { productId } = req.params;
-
+  if (!productId) {
+    return res.status(400).json({ error: "productId is required" });
+  }
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    return res.status(400).json({ error: "Invalid productId" });
+  }
   try {
     const cart = await Cart.findOne({ userId: req.user._id });
 
     if (!cart) {
-      return res.status(404).json({ msg: "Cart not found" });
+      return res.status(404).json({ message: "Cart not found" });
     }
 
     cart.cartItems.pull({ productId });
     cart.subTotal = cart.cartItems.reduce((sum, item) => sum + item.total, 0);
     await cart.save();
 
-    res.json({ msg: "Product removed from cart" });
+    res.json({ success: true, message: "Product removed from cart" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ success: false, message: "Internal Server error" });
   }
 };
 
 const updateItemInCart = async (req, res) => {
-  const { productId, quantity } = req.body;
-
+  const { quantity } = req.body;
+  const productId = req.params.productId;
+  if (!productId) {
+    return res.status(400).json({ error: "productId is required" });
+  }
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    return res.status(400).json({ error: "Invalid productId" });
+  }
   try {
     const cart = await Cart.findOne({ userId: req.user._id });
 
     if (!cart) {
-      return res.status(404).json({ msg: "Cart not found" });
+      return res.status(404).json({ message: "Cart not found" });
     }
 
     const item = cart.cartItems.find(
@@ -386,7 +446,7 @@ const updateItemInCart = async (req, res) => {
     );
 
     if (!item) {
-      return res.status(404).json({ msg: "Product not found in cart" });
+      return res.status(404).json({ message: "Product not found in cart" });
     }
 
     item.quantity = quantity;
@@ -396,10 +456,10 @@ const updateItemInCart = async (req, res) => {
     cart.subTotal = cart.cartItems.reduce((sum, item) => sum + item.total, 0);
     await cart.save();
 
-    res.json({ msg: "Product updated in cart", cart });
+    res.json({ success: true, message: "Product updated in cart", cart });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ message: "Internal Server error" });
   }
 };
 
@@ -412,7 +472,7 @@ const addFavouritesToCart = async (req, res) => {
     );
 
     if (!favourites || favourites.productId.length === 0) {
-      return res.status(404).json({ msg: "No favourite products found" });
+      return res.status(404).json({ message: "No favourite products found" });
     }
 
     let cart = await Cart.findOne({ userId });
@@ -428,6 +488,7 @@ const addFavouritesToCart = async (req, res) => {
       if (!alreadyExists) {
         cart.cartItems.push({
           productId: product._id,
+          image: product.image,
           quantity: 1,
           price: product.price,
           total: product.price,
@@ -440,12 +501,13 @@ const addFavouritesToCart = async (req, res) => {
     await cart.save();
 
     return res.status(200).json({
-      msg: "All favourite products added to the cart successfully",
+      success: true,
+      message: "All favourite products added to the cart successfully",
       cart,
     });
   } catch (err) {
     console.error("Error adding favourites to cart:", err);
-    res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -481,6 +543,7 @@ const createOrder = async (req, res) => {
       await product.save();
     }
     res.status(201).json({
+      success: true,
       message: "Order successfully created!",
       order: newOrder,
     });
@@ -504,9 +567,11 @@ const getOrderDetails = async (req, res) => {
       return res.status(404).json({ message: "No Order Found" });
     }
 
-    res
-      .status(200)
-      .json({ message: "Order Details fetched sucessfully", data });
+    res.status(200).json({
+      success: true,
+      message: "Order Details fetched sucessfully",
+      data,
+    });
   } catch (error) {
     console.error("Error While getting order details :", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -541,10 +606,14 @@ const cancelOrder = async (req, res) => {
 
     const order = await Order.findByIdAndUpdate(
       orderId,
-      { status: "cancel" },
+      { status: "Cancelled" },
       { new: true }
     );
-    res.json(order);
+    res.status(200).json({
+      success: true,
+      message: "Product cancelled successfully",
+      order,
+    });
   } catch (error) {
     console.error("Error while canceling order", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -574,6 +643,7 @@ const changeOrderStatus = async (req, res) => {
     }
 
     res.status(200).json({
+      success: true,
       message: "Order status updated successfully",
       data: order,
     });
@@ -757,7 +827,7 @@ const getProductByCategoryName = async (req, res) => {
   }
 };
 
-const datatabel = async (req, res) => {
+const datatable = async (req, res) => {
   try {
     const { categoryId } = req.params;
     const { draw, start = 0, length = 10, search, order } = req.body;
@@ -841,6 +911,34 @@ const datatabel = async (req, res) => {
   }
 };
 
+const getCart = async (req, res) => {
+  try {
+    const userId = req.user && req.user._id;
+    if (!userId) {
+      return res.status(400).json({ message: "User ID missing" });
+    }
+
+    // Find cart by userId (not by cart's _id)
+    const cart = await Cart.findOne({ userId }).lean();
+
+    if (!cart) {
+      // Depending on design, you may return an “empty” cart instead of 404
+      return res
+        .status(404)
+        .json({ success: true, message: "Cart is empty", cart: null });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Cart data fetched successfully",
+      cart,
+    });
+  } catch (error) {
+    console.error("Error while getting Cart:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   setProduct,
   getProduct,
@@ -863,6 +961,7 @@ module.exports = {
   changeOrderStatus,
   getProductByCategoryId,
   getProductByCategoryName,
+  datatable,
   bulkproducts,
-  datatabel,
+  getCart,
 };

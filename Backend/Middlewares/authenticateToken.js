@@ -14,7 +14,7 @@ const authenticateToken = async (req, res, next) => {
 
     const decoded = verifyAccessToken(token);
     req.user = decoded;
-
+    // console.log(req.user);
     res.locals.user = decoded;
 
     next();

@@ -92,8 +92,6 @@ const getUserList = async (req, res) => {
     const sortField = columnMap[sortColumnIndex] || "fullName";
     const sortOrder = sortDirection === "desc" ? -1 : 1;
 
-
-
     // Build search query
     let searchQuery = {};
     if (searchValue.trim()) {
@@ -105,7 +103,6 @@ const getUserList = async (req, res) => {
         ],
       };
     }
-
 
     // Get counts
     const totalUsers = await User.countDocuments({});
@@ -119,8 +116,6 @@ const getUserList = async (req, res) => {
       sortObj = { createdAt: -1 };
     }
 
-
-
     // Get users
     const userData = await User.find(
       searchQuery,
@@ -129,10 +124,6 @@ const getUserList = async (req, res) => {
       .sort(sortObj)
       .skip(skip)
       .limit(limit);
-
- 
-
- 
 
     // Format data - ensure all fields are strings/defined
     const formattedData = userData.map((user) => {
@@ -152,8 +143,6 @@ const getUserList = async (req, res) => {
       return formatted;
     });
 
-  
-
     // DataTables expects specific structure
     const response = {
       draw: parseInt(req.query.draw) || 1,
@@ -162,9 +151,7 @@ const getUserList = async (req, res) => {
       data: formattedData,
     };
 
- 
-
-    res.json(response);
+    res.status(200).json(response);
   } catch (error) {
     console.error("Error in getUserList:", error);
     res.status(500).json({

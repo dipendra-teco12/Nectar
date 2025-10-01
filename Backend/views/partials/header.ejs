@@ -31,7 +31,7 @@
         <!-- <div class="dropdown-divider"></div>
         <a href="/admin/settings" class="dropdown-item">
           <i class="fas fa-cog mr-2"></i> Settings
-        </a> -->                   
+        </a> -->
         <div class="dropdown-divider"></div>
         <a href="/api/auth/logout" class="dropdown-item" id="logoutBtn">
           <i class="fas fa-sign-out-alt mr-2"></i> Logout
@@ -47,3 +47,26 @@
     </li>
   </ul>
 </nav>
+<script>
+  $(document).ready(function () {
+    $("#logoutBtn").on("click", function (e) {
+      e.preventDefault(); // stop default redirect
+
+      const logoutUrl = $(this).attr("href");
+
+      showModal({
+        title: "Confirm Logout",
+        message: `<div class="text-center">
+                    <i class="fas fa-sign-out-alt text-danger" style="font-size: 48px; margin-bottom: 10px;"></i>
+                    <p>Are you sure you want to log out?</p>
+                  </div>`,
+        confirmText: "Yes, Logout",
+        showCancel: true,
+        onConfirm: function () {
+          // Perform logout redirect
+          window.location.href = logoutUrl;
+        },
+      });
+    });
+  });
+</script>

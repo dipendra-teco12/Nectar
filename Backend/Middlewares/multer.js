@@ -2,15 +2,18 @@ const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const cloudinary = require("../Config/cloudinary");
-
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
     const folder = "Nectar/Product";
+    const cleanFileName = file.originalname
+      .replace(/\s+/g, "_") 
+      .replace(/[^a-zA-Z0-9._-]/g, ""); // remove & % # @ ! etc.
+
     return {
       folder,
       allowed_formats: ["jpg", "jpeg", "png", "webp"],
-      public_id: `${Date.now()}-${file.originalname.replace(/\s/g, "_")}`,
+      public_id: `${Date.now()}-${cleanFileName}`,
       resource_type: "auto",
     };
   },
@@ -19,7 +22,7 @@ const storage = new CloudinaryStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 50MB
+    fileSize: 10 * 1024 * 1024, 
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) {

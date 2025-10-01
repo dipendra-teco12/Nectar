@@ -147,7 +147,7 @@ router.get(
 router.get("/privacy-policy", privacy_policy);
 router.post("/save-privacy", save_privacy);
 
-router.get("/productlist", authenticateToken, getAllProduct);
+router.get("/productlist", getAllProduct);
 
 router.get("/orders/list", authenticateToken, getOrders);
 
