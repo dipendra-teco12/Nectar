@@ -354,6 +354,7 @@ const addItemsToTheCart = async (req, res) => {
         userId: id,
         cartItems: [
           {
+            productName: product.productName,
             productId: product._id,
             image: product.image,
             quantity: 1,
@@ -378,6 +379,7 @@ const addItemsToTheCart = async (req, res) => {
     }
 
     cart.cartItems.push({
+      productName: product.productName,
       productId: product._id,
       image: product.image,
       quantity: 1,

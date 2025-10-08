@@ -3,6 +3,9 @@ const Product = require("./product.Model");
 
 const ItemSchema = new mongoose.Schema(
   {
+    productName: {
+      type: String,
+    },
     productId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",

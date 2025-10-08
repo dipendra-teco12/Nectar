@@ -263,18 +263,7 @@ const verifyOtpForResetPass = async (req, res) => {
 
     await user.save();
 
-    const tempToken = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
-      expiresIn: "5m",
-    });
-
-    res.cookie("accessToken", tempToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "Strict",
-      maxAge: 5 * 60 * 1000,
-    });
-
-    res.json({ success: true, message: "OTP verified", tempToken });
+    res.json({ success: true, message: "OTP verified" });
   } catch (error) {
     console.error("Error in verifying:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -283,16 +272,31 @@ const verifyOtpForResetPass = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    const { password } = req.body;
-    const userId = req.user.userId;
+    const { password, email } = req.body;
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!email || !password || typeof password !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Email and Password is required and must be a string",
+      });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
 
-    user.password = await bcrypt.hash(password, 10);
+    // Convert to string just in case
+    const passwordToHash = password.toString();
 
+    const hashed = await bcrypt.hash(passwordToHash, 10);
+    user.password = hashed;
+
+    // Reset other fields
     user.otpAttemptCount = undefined;
     user.lastOTPSentAt = undefined;
+
     await user.save();
 
     res.json({ success: true, message: "Password changed successfully" });

@@ -7,6 +7,7 @@ const {
 
   changeAccountStatus,
   deleteUser,
+  getUserOrder,
 } = require("../Controllers/user.Controller");
 const authenticateToken = require("../Middlewares/authenticateToken");
 const router = express.Router();
@@ -33,5 +34,7 @@ router.delete(
   authorizeRoles("admin"),
   deleteUser
 );
+
+router.get("/orders", authenticateToken, getUserOrder);
 
 module.exports = router;

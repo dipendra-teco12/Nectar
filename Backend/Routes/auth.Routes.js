@@ -22,7 +22,7 @@ router.post("/verify-otp", verifyOtp);
 
 router.post("/forgetpassword", forgetPassword);
 router.post("/verifyotp", verifyOtpForResetPass);
-router.post("/resetPassword", authenticateToken, resetPassword);
+router.post("/resetPassword", resetPassword);
 router.patch("/update-profile", authenticateToken, updateProfile);
 
 module.exports = router;

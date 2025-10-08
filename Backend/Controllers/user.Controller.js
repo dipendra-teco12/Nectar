@@ -238,10 +238,62 @@ const deleteUser = async (req, res) => {
     });
   }
 };
+const Order = require("../Models/order.Model");
+const getUserOrder = async (req, res) => {
+  try {
+    // 1. Check authentication / user presence
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: user not authenticated",
+      });
+    }
+
+    const userId = req.user._id;
+
+    // 2. Build filter object (you may add more filters later if needed)
+    const filter = { userId };
+
+    // Example: allow filtering by status if provided
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+
+    // Example: allow date‐range filtering
+    if (req.query.fromDate && req.query.toDate) {
+      filter.createdAt = {
+        $gte: new Date(req.query.fromDate),
+        $lte: new Date(req.query.toDate),
+      };
+    }
+
+    // 3. Query orders
+    // Using `.lean()` to get plain objects (faster) unless you need mongoose doc methods
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
+
+    // 4. Return response
+    return res.status(200).json({
+      success: true,
+      message: "User orders fetched successfully",
+
+      orders,
+    });
+  } catch (error) {
+    console.error("Error while getting user orders:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      // Optionally in dev:
+      ...(process.env.NODE_ENV === "development" && { error: error.message }),
+    });
+  }
+};
+
 module.exports = {
   getUser,
   getUserList,
   saveLocation,
   changeAccountStatus,
   deleteUser,
+  getUserOrder,
 };

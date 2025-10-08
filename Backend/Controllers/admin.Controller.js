@@ -351,7 +351,7 @@ const save_privacy = async (req, res) => {
 
 const dashboardCount = async (req, res) => {
   try {
-    const NewOrder = await Order.countDocuments({ status: "Pending" });
+    const NewOrder = await Order.countDocuments({ status: "pending" });
     const Delivered = await Order.countDocuments({ status: "Delivered" });
     const ActiveUser = await User.countDocuments();
 
